@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 
 namespace EdcentralizedNet.DataAccess
 {
-    public interface IEtherscanDA
+    public interface IOpenseaDA
     {
-        Task<IEnumerable<ERC721Transfer>> GetERC721OwnedByAccount(string accountAddress);
+        Task<IEnumerable<OSCollection>> GetCollectionsForAccount(string accountAddress);
     }
 }

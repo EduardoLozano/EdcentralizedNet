@@ -6,33 +6,60 @@ export class Portfolio extends Component {
 
     constructor(props) {
         super(props);
-        this.state = { transactions: [], loading: true };
+        this.state = { portfolio: {}, loading: true };
     }
 
     componentDidMount() {
         this.populateTransactionData();
     }
 
-    static renderTransactionsTable(transactions) {
+    static renderTransactionsTable(portfolio) {
         return (
             <table className='table table-striped' aria-labelledby="tabelLabel">
                 <thead>
                     <tr>
-                        <th>Token Name</th>
+                        <th>Collection Name</th>
                         <th>Token ID</th>
-                        <th>Transaction Date</th>
-                        <th>Value (ETH)</th>
+                        <th>Purchase Date</th>
+                        <th>Purchase Price (ETH)</th>
+                        <th>Floor Price (ETH)</th>
+                        <th>P&L (ETH)</th>
+                        <th>P&L %</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {transactions.map(t =>
-                        <tr key={t.hash + t.tokenID}>
-                            <td>{t.tokenName}</td>
+                    {portfolio.tokens.map(t =>
+                        <tr key={t.transactionHash + t.tokenID}>
+                            <td>{t.collectionName}</td>
                             <td>{t.tokenID}</td>
-                            <td>{(new Date(t.timeStamp * 1000)).toLocaleString()}</td>
-                            <td>{t.transaction.value/1000000000000000000} ETH</td>
+                            <td>{(new Date(t.purchaseDate)).toLocaleString()}</td>
+                            <td>{t.purchasePrice} ETH</td>
+                            <td>{t.floorPrice} ETH</td>
+                            <td style={{ color: t.profitLossAmount < 0 ? "red" : "green" }}>{t.profitLossAmount} ETH</td>
+                            <td style={{ color: t.profitLossAmount < 0 ? "red" : "green" }}>{t.profitLossPercent}%</td>
                         </tr>
                     )}
+                </tbody>
+            </table>
+        );
+    }
+
+    static renderHeaderTable(portfolio) {
+        return (
+            <table className='table table-striped' aria-labelledby="tabelLabel">
+                <thead>
+                    <tr>
+                        <th>Invested Value (ETH)</th>
+                        <th>Profit Loss Amount (ETH)</th>
+                        <th>Profit Loss Percent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr key="headerKey">
+                        <td>{portfolio.investedValue} ETH</td>
+                        <td style={{ color: portfolio.profitLossAmount < 0 ? "red" : "green" }}>{portfolio.profitLossAmount} ETH</td>
+                        <td style={{ color: portfolio.profitLossAmount < 0 ? "red" : "green" }}>{portfolio.profitLossPercent}%</td>
+                    </tr>
                 </tbody>
             </table>
         );
@@ -41,12 +68,16 @@ export class Portfolio extends Component {
     render() {
         let contents = this.state.loading
             ? <p><em>Loading...</em></p>
-            : Portfolio.renderTransactionsTable(this.state.transactions);
+            : Portfolio.renderTransactionsTable(this.state.portfolio);
+
+        let header = this.state.loading
+            ? <p><em>Loading...</em></p>
+            : Portfolio.renderHeaderTable(this.state.portfolio);
 
         return (
             <div>
                 <h1 id="tabelLabel" >My NFT Portfolio</h1>
-                <p>This component demonstrates fetching data from the server.</p>
+                {header}
                 {contents}
             </div>
         );
@@ -57,12 +88,12 @@ export class Portfolio extends Component {
 
         if (Wallet.isConnected) {
             var params = new URLSearchParams({ accountAddress: Wallet.address });
-            const response = await fetch('etherscan?' + params);
+            const response = await fetch('portfolio?' + params);
             const data = await response.json();
             console.log(data);
-            this.setState({ transactions: data, loading: false });
+            this.setState({ portfolio: data, loading: false });
         } else {
-            this.setState({ transactions: [], loading: false });
+            this.setState({ portfolio: {}, loading: false });
         }
     }
 }

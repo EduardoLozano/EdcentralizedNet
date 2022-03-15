@@ -1,3 +1,4 @@
+using EdcentralizedNet.Business;
 using EdcentralizedNet.DataAccess;
 using EdcentralizedNet.HttpClients;
 using Microsoft.AspNetCore.Builder;
@@ -27,9 +28,14 @@ namespace EdcentralizedNet
 
             //Add Http Clients
             services.AddHttpClient<EtherscanClient>();
+            services.AddHttpClient<OpenseaClient>();
 
             //Add Data Access
             services.AddScoped<IEtherscanDA, EtherscanDA>();
+            services.AddScoped<IOpenseaDA, OpenseaDA>();
+
+            //Add Business Layer
+            services.AddScoped<INFTManager, NFTManager>();
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>

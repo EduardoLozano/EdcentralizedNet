@@ -19,7 +19,7 @@ namespace EdcentralizedNet.DataAccess
             _client = client;
         }
 
-        public async Task<IEnumerable<ERC721Transfer>> GetERC721TransfersForAccount(string accountAddress)
+        public async Task<IEnumerable<ERC721Transfer>> GetERC721OwnedByAccount(string accountAddress)
         {
             IEnumerable<ERC721Transfer> transfers = new List<ERC721Transfer>();
             EtherscanResponse<ERC721Transfer> response = await _client.GetERC721TransfersForAccount(accountAddress);
