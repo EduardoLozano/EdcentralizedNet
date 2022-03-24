@@ -1,5 +1,6 @@
 ﻿using EdcentralizedNet.Helpers;
 using EdcentralizedNet.Models;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -11,14 +12,15 @@ namespace EdcentralizedNet.HttpClients
 {
     public class EtherscanClient
     {
-        private static string apiKey = "F793PNEVJ81SFSFT3TGMWYEK65JHNSU7NH";
+        private static string _apiKey;
         private readonly HttpClient _httpClient;
         JsonSerializerOptions _jsonSerializerOptions;
 
-        public EtherscanClient(HttpClient httpClient)
+        public EtherscanClient(HttpClient httpClient, IConfiguration configuration)
         {
+            _apiKey = configuration.GetSection("Etherscan")["ApiKey"];
             _httpClient = httpClient;
-            _httpClient.BaseAddress = new Uri("https://api.etherscan.io/api");
+            _httpClient.BaseAddress = new Uri(configuration.GetSection("Etherscan")["ApiBaseAddress"]);
             _jsonSerializerOptions = new JsonSerializerOptions();
             _jsonSerializerOptions.Converters.Add(new HexToLongConverter());
         }
@@ -38,7 +40,7 @@ namespace EdcentralizedNet.HttpClients
                 query["startblock"] = "0";
                 query["endblock"] = "27025780";
                 query["sort"] = "asc";
-                query["apikey"] = apiKey;
+                query["apikey"] = _apiKey;
 
                 builder.Query = query.ToString();
 
@@ -62,7 +64,7 @@ namespace EdcentralizedNet.HttpClients
                 query["module"] = "proxy";
                 query["action"] = "eth_getTransactionByHash";
                 query["txhash"] = transactionHash;
-                query["apikey"] = apiKey;
+                query["apikey"] = _apiKey;
 
                 builder.Query = query.ToString();
 

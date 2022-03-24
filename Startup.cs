@@ -1,9 +1,9 @@
 using EdcentralizedNet.Business;
+using EdcentralizedNet.Cache;
 using EdcentralizedNet.DataAccess;
 using EdcentralizedNet.HttpClients;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,16 +23,26 @@ namespace EdcentralizedNet
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.AddControllersWithViews();
+
+            //Add Redis Cache
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = Configuration.GetSection("RedisCache")["ConnectionString"];
+                options.InstanceName = "Edcentralized|";
+            });
 
             //Add Http Clients
             services.AddHttpClient<EtherscanClient>();
             services.AddHttpClient<OpenseaClient>();
 
-            //Add Data Access
+            //Add Data Access Layer
             services.AddScoped<IEtherscanDA, EtherscanDA>();
             services.AddScoped<IOpenseaDA, OpenseaDA>();
+
+            //Add Caching Layer
+            services.AddScoped<IApplicationCache, ApplicationCache>();
+            services.AddScoped<IOpenseaCache, OpenseaCache>();
 
             //Add Business Layer
             services.AddScoped<INFTManager, NFTManager>();

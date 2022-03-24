@@ -1,6 +1,6 @@
 ﻿namespace EdcentralizedNet.Models
 {
-    public class OSAssetContact
+    public class OSAssetContract
     {
         public string address { get; set; }
         public string asset_contract_type { get; set; }
