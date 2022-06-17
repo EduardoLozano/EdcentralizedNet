@@ -43,6 +43,7 @@ namespace EdcentralizedNet
             //Add Caching Layer
             services.AddScoped<IApplicationCache, ApplicationCache>();
             services.AddScoped<IOpenseaCache, OpenseaCache>();
+            services.AddScoped<IEtherscanCache, EtherscanCache>();
 
             //Add Business Layer
             services.AddScoped<INFTManager, NFTManager>();

@@ -1,4 +1,5 @@
-﻿using EdcentralizedNet.HttpClients;
+﻿using EdcentralizedNet.Cache;
+using EdcentralizedNet.HttpClients;
 using EdcentralizedNet.Models;
 using Microsoft.Extensions.Logging;
 using System;
@@ -12,11 +13,35 @@ namespace EdcentralizedNet.DataAccess
     {
         private readonly ILogger<EtherscanDA> _logger;
         private readonly EtherscanClient _client;
+        private readonly IEtherscanCache _cache;
 
-        public EtherscanDA(ILogger<EtherscanDA> logger, EtherscanClient client)
+        public EtherscanDA(ILogger<EtherscanDA> logger, EtherscanClient client, IEtherscanCache cache)
         {
             _logger = logger;
             _client = client;
+            _cache = cache;
+        }
+
+        public async Task<EthTransaction> GetEthTransaction(string transactionHash)
+        {
+            //Try and find transaction in cache first
+            EthTransaction trx = await _cache.GetEthTransaction(transactionHash);
+
+            if (trx == null)
+            {
+                //If we did not find the transaction in cache, lets hit the API
+                ParityResponse<EthTransaction>  trxResponse = await _client.GetEthTransaction(transactionHash);
+
+                if (trxResponse != null)
+                {
+                    trx = trxResponse.result;
+
+                    //Update cache for next time around
+                    await _cache.SetEthTransaction(transactionHash, trx);
+                }
+            }
+
+            return trx;
         }
 
         public async Task<IEnumerable<ERC721Transfer>> GetERC721OwnedByAccount(string accountAddress)

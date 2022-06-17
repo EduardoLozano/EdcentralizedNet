@@ -22,6 +22,34 @@ namespace EdcentralizedNet.Business
         {
             List<NFTInformation> nfi = new List<NFTInformation>();
 
+            //Get all assets from OpenSea
+            OSAssetList assets = await _openseaDA.GetAssetsForAccount(accountAddress);
+
+            //Map into GUI model
+            foreach (OSAsset asset in assets.assets)
+            {
+                //If the last sale does not have a total price, then we assume it is a mint event
+                //Attempt to get the transaction from etherscan for the mint price
+                if (asset.last_sale != null && asset.last_sale.transaction != null && asset.last_sale.total_price == null)
+                {
+                    EthTransaction trx = await _etherscanDA.GetEthTransaction(asset.last_sale.transaction.transaction_hash);
+
+                    if (trx != null)
+                    {
+                        asset.last_sale.total_price = trx.value.ToString();
+                    }
+                }
+
+                nfi.Add(new NFTInformation(asset));
+            }
+
+            return nfi;
+        }
+
+        public async Task<List<NFTInformation>> GetAllNFTForAccount2(string accountAddress)
+        {
+            List<NFTInformation> nfi = new List<NFTInformation>();
+
             //First try and get all NFT collection info from OpenSea
             var osCollections = await _openseaDA.GetCollectionsForAccount(accountAddress);
 

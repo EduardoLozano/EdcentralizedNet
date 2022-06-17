@@ -18,6 +18,7 @@ export class Portfolio extends Component {
             <table className='table table-striped' aria-labelledby="tabelLabel">
                 <thead>
                     <tr>
+                        <th></th>
                         <th>Collection Name</th>
                         <th>Token ID</th>
                         <th>Purchase Date</th>
@@ -30,8 +31,9 @@ export class Portfolio extends Component {
                 <tbody>
                     {portfolio.tokens.map(t =>
                         <tr key={t.transactionHash + t.tokenID}>
+                            <td><img src={t.imageUrl}></img></td>
                             <td>{t.collectionName}</td>
-                            <td>{t.tokenID}</td>
+                            <td style={{ wordBreak: "break-word" }}>{t.tokenID}</td>
                             <td>{(new Date(t.purchaseDate)).toLocaleString()}</td>
                             <td>{t.purchasePrice} ETH</td>
                             <td>{t.floorPrice} ETH</td>
@@ -90,7 +92,7 @@ export class Portfolio extends Component {
             var params = new URLSearchParams({ accountAddress: Wallet.address });
             const response = await fetch('portfolio?' + params);
             const data = await response.json();
-            console.log(data);
+            //console.log(data);
             this.setState({ portfolio: data, loading: false });
         } else {
             this.setState({ portfolio: {}, loading: false });

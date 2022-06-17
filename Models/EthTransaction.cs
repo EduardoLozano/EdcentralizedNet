@@ -7,6 +7,8 @@ namespace EdcentralizedNet.Models
     {
         public long maxFeePerGas { get; set; }
         public long maxPriorityFeePerGas { get; set; }
+        public long gas { get; set; }
+        public long gasPrice { get; set; }
         public long value { get; set; }
         public long type { get; set; }
         public long chainId { get; set; }
