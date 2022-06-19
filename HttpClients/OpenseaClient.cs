@@ -35,7 +35,7 @@ namespace EdcentralizedNet.HttpClients
 
                 query["owner"] = accountAddress;
                 query["order_direction"] = "asc";
-                query["limit"] = "50"; //Currently defaults to 20, capped at 50
+                query["limit"] = "20"; //Currently defaults to 20, capped at 50
 
                 //If requesting next or previous page, cursor should be passed
                 if(!string.IsNullOrWhiteSpace(cursor))

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace EdcentralizedNet.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class PortfolioController : ControllerBase
     {
         private readonly ILogger<PortfolioController> _logger;
@@ -23,11 +23,11 @@ namespace EdcentralizedNet.Controllers
         }
 
         [HttpGet]
-        public async Task<PortfolioInformation> Get(string accountAddress)
+        public async Task<PortfolioInformation> Get(string accountAddress, string pageCursor)
         {
             //Temp address
             accountAddress = "0xCCEc25758b6db66C4abD31E5333658FcF222dc26";
-            var tokens = await _nftManager.GetAllNFTForAccount(accountAddress);
+            var tokens = await _nftManager.GetAllNFTForAccount(accountAddress, pageCursor);
             return new PortfolioInformation(tokens);
         }
     }

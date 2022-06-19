@@ -18,29 +18,40 @@ namespace EdcentralizedNet.Business
             _openseaDA = openseaDA;
         }
 
-        public async Task<List<NFTInformation>> GetAllNFTForAccount(string accountAddress)
+        public async Task<NFTInformationList> GetAllNFTForAccount(string accountAddress, string pageCursor)
         {
-            List<NFTInformation> nfi = new List<NFTInformation>();
+            NFTInformationList nfi = new NFTInformationList();
 
             //Get all assets from OpenSea
-            OSAssetList assets = await _openseaDA.GetAssetsForAccount(accountAddress);
+            OSAssetList assets = await _openseaDA.GetAssetsForAccount(accountAddress, pageCursor);
 
-            //Map into GUI model
-            foreach (OSAsset asset in assets.assets)
+            if (assets != null)
             {
-                //If the last sale does not have a total price, then we assume it is a mint event
-                //Attempt to get the transaction from etherscan for the mint price
-                if (asset.last_sale != null && asset.last_sale.transaction != null && asset.last_sale.total_price == null)
+                //Map into GUI model
+                foreach (OSAsset asset in assets.assets)
                 {
-                    EthTransaction trx = await _etherscanDA.GetEthTransaction(asset.last_sale.transaction.transaction_hash);
-
-                    if (trx != null)
+                    //If the last sale does not have a total price, then we assume it is a mint event
+                    //Attempt to get the transaction from etherscan for the mint price
+                    if (asset.last_sale != null && asset.last_sale.transaction != null && asset.last_sale.total_price == null)
                     {
-                        asset.last_sale.total_price = trx.value.ToString();
+                        EthTransaction trx = await _etherscanDA.GetEthTransaction(asset.last_sale.transaction.transaction_hash);
+
+                        if (trx != null)
+                        {
+                            asset.last_sale.total_price = trx.value.ToString();
+                        }
                     }
+
+                    nfi.Add(new NFTInformation(asset));
                 }
 
-                nfi.Add(new NFTInformation(asset));
+                //Set cursors for next and previous pages
+                //Setting the backwards because when in asc order, opensea returns previous cursor as the next page
+                nfi.NextPageCursor = assets.previous;
+                nfi.PrevPageCursor = assets.next;
+
+                //Reverse list because opensea simply returns the pages in reverse order when requested in asc order
+                nfi.Reverse();
             }
 
             return nfi;

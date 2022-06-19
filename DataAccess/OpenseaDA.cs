@@ -42,10 +42,7 @@ namespace EdcentralizedNet.DataAccess
                             stats = await _client.GetStatsForCollection(asset.collection.slug);
 
                             //Update cache for next time around
-                            if (stats != null)
-                            {
-                                await _cache.SetStatsForCollection(asset.collection.slug, stats);
-                            }
+                            await _cache.SetStatsForCollection(asset.collection.slug, stats);
 
                             //Throttle calls to the API
                             Thread.Sleep(50);

@@ -28,10 +28,19 @@ namespace EdcentralizedNet.Cache
 
         public Task SetStatsForCollection(string collectionSlug, OSStats stats)
         {
+            //Default expiration to 15 minutes
+            TimeSpan expiration = new TimeSpan(0, 15, 0);
             string key = string.Format(collectionStatsKey, collectionSlug);
             
-            //Expire every 10min
-            return _cache.Set<OSStats>(key, stats, expireFromNow: new TimeSpan(0, 10, 0)); 
+            //For opensea stats, if we dont receive any back, lets store an empty object
+            //Lets also store it for a whole day so we dont continue hitting the api for this collection
+            if(stats == null)
+            {
+                stats = new OSStats();
+                expiration = new TimeSpan(1, 0, 0, 0);
+            }
+
+            return _cache.Set<OSStats>(key, stats, expireFromNow: expiration); 
         }
 
         public Task RemoveStatsForCollection(string collectionSlug)
