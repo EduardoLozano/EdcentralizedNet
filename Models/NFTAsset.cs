@@ -13,6 +13,7 @@ namespace EdcentralizedNet.Models
         public decimal ProfitLossAmount { get; set; }
         public decimal ProfitLossPercent { get; set; }
         public string ImageUrl { get; set; }
+        public string OpenseaUrl { get; set; }
 
         public NFTAsset() { }
 
@@ -21,6 +22,7 @@ namespace EdcentralizedNet.Models
             CollectionName = asset.collection.name;
             TokenID = asset.token_id;
             ImageUrl = asset.image_thumbnail_url;
+            OpenseaUrl = $"https://opensea.io/assets/ethereum/{asset.asset_contract.address}/{asset.token_id}";
 
             if (asset.last_sale != null)
             {
@@ -45,7 +47,7 @@ namespace EdcentralizedNet.Models
 
             FloorPrice = asset.collection.stats != null ? asset.collection.stats.floor_price : 0;
             ProfitLossAmount = FloorPrice - PurchasePrice;
-            ProfitLossPercent = Math.Round((ProfitLossAmount / (PurchasePrice.Equals(0) ? 1 : PurchasePrice)) * 100, 4);
+            ProfitLossPercent = Math.Round((ProfitLossAmount / (PurchasePrice.Equals(0) ? 1 : PurchasePrice)) * 100, 2);
         }
     }
 }

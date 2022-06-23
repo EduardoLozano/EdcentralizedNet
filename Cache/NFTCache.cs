@@ -20,23 +20,23 @@ namespace EdcentralizedNet.Cache
         }
 
         #region NFT Asset List
-        public Task<CursorPagedList<NFTAsset>> GetNFTAssetPage(string accountAddress, string pageCursor = null)
+        public Task<CursorPagedList<NFTAsset>> GetNFTAssetPage(string accountAddress, int pageNumber)
         {
-            string key = string.Format(nftAssetPageKey, accountAddress,pageCursor);
+            string key = string.Format(nftAssetPageKey, accountAddress, pageNumber);
             return _cache.Get<CursorPagedList<NFTAsset>>(key);
         }
 
-        public Task SetNFTAssetPage(string accountAddress, string pageCursor, CursorPagedList<NFTAsset> assetList)
+        public Task SetNFTAssetPage(string accountAddress, int pageNumber, CursorPagedList<NFTAsset> assetList)
         {
-            string key = string.Format(nftAssetPageKey, accountAddress, pageCursor);
+            string key = string.Format(nftAssetPageKey, accountAddress, pageNumber);
 
             //Hold pages for a sliding 10 minutes
             return _cache.Set(key, assetList, expireSliding: new TimeSpan(0, 10, 0));
         }
 
-        public Task RemoveNFTAssetPage(string accountAddress, string pageCursor)
+        public Task RemoveNFTAssetPage(string accountAddress, int pageNumber)
         {
-            string key = string.Format(nftAssetPageKey, accountAddress, pageCursor);
+            string key = string.Format(nftAssetPageKey, accountAddress, pageNumber);
             return _cache.Remove(key);
         }
         #endregion

@@ -23,12 +23,12 @@ class Header extends Component {
         return (
             <header className="topnavbar-wrapper">
                 { /* START Top Navbar */ }
-                <nav className="navbar topnavbar">
+                <nav className="navbar topnavbar align-items-center justify-content-center">
                     { /* START navbar header */ }
                     <div className="navbar-header">
                         <a className="navbar-brand" href="#/">
-                            <div className="brand-logo">
-                                <span style={{ color: 'white' }}>EdcentralizedNet</span>
+                            <div className="brand-logo text-center">
+                                <span className="" style={{ color: 'white' }}>EdcentralizedNet</span>
                             </div>
                         </a>
                     </div>

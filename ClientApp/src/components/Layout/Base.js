@@ -7,7 +7,7 @@ const Base = props => (
     <div className="wrapper">
         <Header />
 
-        <section className="section-container">
+        <section className="section-container" style={{ marginLeft:"auto" }}>
             { props.children }
         </section>
 

@@ -21,10 +21,12 @@ namespace EdcentralizedNet.Business
             _nftCache = nftCache;
         }
 
-        public async Task<CursorPagedList<NFTAsset>> GetNFTAssetPage(string accountAddress, string pageCursor = null)
+        public async Task<CursorPagedList<NFTAsset>> GetNFTAssetPage(string accountAddress, int pageNumber, string pageCursor = null)
         {
             //Check if we have this page cached already
-            CursorPagedList<NFTAsset> assetList = await _nftCache.GetNFTAssetPage(accountAddress, pageCursor);
+            //Chached with page number because cursors vary and cause duplicate storage
+            //All pages held for a short amount of time so that our results dont get too stale
+            CursorPagedList<NFTAsset> assetList = await _nftCache.GetNFTAssetPage(accountAddress, pageNumber);
 
             if (assetList == null)
             {
@@ -59,7 +61,7 @@ namespace EdcentralizedNet.Business
 
                     //Store this page in cache for future use
                     //TODO: Currently storing first page with null cursor on initial load and another cursor on going previous
-                    await _nftCache.SetNFTAssetPage(accountAddress, pageCursor, assetList);
+                    await _nftCache.SetNFTAssetPage(accountAddress, pageNumber, assetList);
                 }
             }
 
@@ -87,19 +89,21 @@ namespace EdcentralizedNet.Business
 
         private async Task<List<NFTAsset>> GetAllNFTAssets(string accountAddress)
         {
+            int pageNumber = 1;
             List<NFTAsset> allAssets = new List<NFTAsset>();
             CursorPagedList<NFTAsset> assetPage = new CursorPagedList<NFTAsset>();
 
             do
             {
-                assetPage = await GetNFTAssetPage(accountAddress, assetPage.NextPageCursor);
+                assetPage = await GetNFTAssetPage(accountAddress, pageNumber, assetPage.NextPageCursor);
 
                 if (assetPage != null)
                 {
                     allAssets.AddRange(assetPage.DataList);
+                    pageNumber++;
                 }
             }
-            while (!string.IsNullOrEmpty(assetPage.NextPageCursor));
+            while (assetPage != null && !string.IsNullOrEmpty(assetPage.NextPageCursor));
 
             return allAssets;
         }

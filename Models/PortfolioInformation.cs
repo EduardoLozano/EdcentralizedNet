@@ -18,7 +18,7 @@ namespace EdcentralizedNet.Models
             {
                 InvestedValue = Math.Round(assets.Sum(t => t.PurchasePrice), 4);
                 ProfitLossAmount = Math.Round(assets.Sum(t => t.ProfitLossAmount), 4);
-                ProfitLossPercent = Math.Round((ProfitLossAmount / (InvestedValue.Equals(0) ? 1 : InvestedValue)) * 100, 4);
+                ProfitLossPercent = Math.Round((ProfitLossAmount / (InvestedValue.Equals(0) ? 1 : InvestedValue)) * 100, 2);
             }
         }
     }

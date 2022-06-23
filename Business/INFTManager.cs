@@ -5,7 +5,7 @@ namespace EdcentralizedNet.Business
 {
     public interface INFTManager
     {
-        Task<CursorPagedList<NFTAsset>> GetNFTAssetPage(string accountAddress, string pageCursor);
+        Task<CursorPagedList<NFTAsset>> GetNFTAssetPage(string accountAddress, int pageNumber, string pageCursor);
         Task<PortfolioInformation> GetPortfolioInformation(string accountAddress);
     }
 }

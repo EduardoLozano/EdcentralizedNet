@@ -76,7 +76,7 @@ namespace EdcentralizedNet.HttpClients
             }
             catch (Exception ex)
             {
-
+                _logger.LogError(ex, ex.Message);
             }
 
             return null;
@@ -89,7 +89,8 @@ namespace EdcentralizedNet.HttpClients
                 UriBuilder builder = new UriBuilder(_httpClient.BaseAddress);
                 var query = HttpUtility.ParseQueryString(builder.Query);
 
-                query["account_address"] = accountAddress;
+                //Do not filter by account address anymore, it seems Opensea filters using the "from address" only
+                //query["account_address"] = accountAddress;
                 query["asset_contract_address"] = contractAddress;
                 query["token_id"] = tokenId;
 
@@ -119,7 +120,7 @@ namespace EdcentralizedNet.HttpClients
             }
             catch (Exception ex)
             {
-
+                _logger.LogError(ex, ex.Message);
             }
 
             return null;
@@ -150,7 +151,7 @@ namespace EdcentralizedNet.HttpClients
             }
             catch (Exception ex)
             {
-
+                _logger.LogError(ex, ex.Message);
             }
 
             return null;
@@ -177,7 +178,7 @@ namespace EdcentralizedNet.HttpClients
             }
             catch (Exception ex)
             {
-
+                _logger.LogError(ex, $"CollectionSlug : {collectionSlug} | {ex.Message}");
             }
 
             return null;
@@ -201,7 +202,7 @@ namespace EdcentralizedNet.HttpClients
             }
             catch (Exception ex)
             {
-
+                _logger.LogError(ex, ex.Message);
             }
 
             return null;

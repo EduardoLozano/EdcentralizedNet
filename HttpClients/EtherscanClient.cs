@@ -2,6 +2,7 @@
 using EdcentralizedNet.Helpers;
 using EdcentralizedNet.Models;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -14,12 +15,13 @@ namespace EdcentralizedNet.HttpClients
 {
     public class EtherscanClient
     {
+        private readonly ILogger<EtherscanClient> _logger;
         private static string _apiKey;
         private readonly HttpClient _httpClient;
         private readonly IRateLimitCache _rateLimitCache;
         JsonSerializerOptions _jsonSerializerOptions;
 
-        public EtherscanClient(HttpClient httpClient, IConfiguration configuration, IRateLimitCache rateLimitCache)
+        public EtherscanClient(HttpClient httpClient, IConfiguration configuration, IRateLimitCache rateLimitCache, ILogger<EtherscanClient> logger)
         {
             _apiKey = configuration.GetSection("Etherscan")["ApiKey"];
             _httpClient = httpClient;
@@ -27,6 +29,7 @@ namespace EdcentralizedNet.HttpClients
             _jsonSerializerOptions = new JsonSerializerOptions();
             _jsonSerializerOptions.Converters.Add(new HexToLongConverter());
             _rateLimitCache = rateLimitCache;
+            _logger = logger;
         }
 
         public async Task<EtherscanResponse<ERC721Transfer>> GetERC721TransfersForAccount(string accountAddress)
@@ -59,7 +62,7 @@ namespace EdcentralizedNet.HttpClients
             }
             catch (Exception ex)
             {
-
+                _logger.LogError(ex, ex.Message);
             }
 
             return null;
@@ -90,7 +93,7 @@ namespace EdcentralizedNet.HttpClients
             }
             catch (Exception ex)
             {
-
+                _logger.LogError(ex, $"TransactionHash: {transactionHash} | {ex.Message}");
             }
 
             return null;

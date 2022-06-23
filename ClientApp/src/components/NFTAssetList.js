@@ -1,43 +1,36 @@
 ﻿import React, { Component } from 'react';
 import Wallet from '../helpers/Wallet';
-import { Row, Col, Card, CardHeader, CardBody } from 'reactstrap';
+import { Row, Col, Card, CardHeader, CardBody, Button } from 'reactstrap';
 
-const FollowerCard = props => (
+const NFTAssetCard = props => (
     <Card className="b text-center">
+        <CardHeader className="text-white bg-dark">{props.collectionName}</CardHeader>
         <CardBody>
-            <img className="rounded-circle thumb64 mb-2" src={props.imageUrl} />
-            <p className="h4 text-bold mb-0">{props.tokenID}</p>
-            <p>{props.collectionName}</p>
-        </CardBody>
-        <CardBody className="bt">
             <Row>
-                <Col col="3" className="br">
-                    <small>Purchase</small>
-                    <br/>
-                    <em className="fab fa-ethereum fa-fw text-primary"></em>
-                    <br />
-                    <strong>{props.purchasePrice}</strong>
+                <Col col="6" className="text-center">
+                    <img className="rounded-circle thumb96 mb-2" src={props.imageUrl} />
+                    <p className="h4 text-bold mb-0 text-truncate">{props.tokenID}</p>
                 </Col>
-                <Col col="3" className="br">
-                    <small>Floor</small>
-                    <br />
-                    <em className="fab fa-ethereum fa-fw text-primary"></em>
-                    <br />
-                    <strong>{props.floorPrice}</strong>
+                <Col col="6" className="text-left">
+                    <h3 style={{ color: props.profitLossAmount < 0 ? "red" : "green" }}>{props.profitLossPercent} %</h3>
+                    <ul className="list-unstyled mb-0">
+                        <li className="mb-1">
+                            Cost: <em className="fab fa-ethereum fa-fw text-primary" style={{ marginLeft: "4px" }}></em>{props.purchasePrice}
+                        </li>
+                        <li className="mb-1">
+                            Floor: <em className="fab fa-ethereum fa-fw text-primary"></em>{props.floorPrice}
+                        </li>
+                        <li className="mb-1">
+                            P&L: <em className="fab fa-ethereum fa-fw text-primary" style={{ marginLeft: "8px" }}></em>{props.profitLossAmount}
+                        </li>
+                    </ul>
                 </Col>
-                <Col xs="3" className="br">
-                    <small>P&L</small>
-                    <br />
-                    <em className="fab fa-ethereum fa-fw text-primary"></em>
-                    <br />
-                    <strong>{props.profitLossAmount}</strong>
-                </Col>
-                <Col xs="3">
-                    <small>P&L %</small>
-                    <br />
-                    <em className="fab fa-ethereum fa-fw text-primary"></em>
-                    <br />
-                    <strong>{props.profitLossAmount}</strong>
+            </Row>
+        </CardBody>
+        <CardBody>
+            <Row>
+                <Col col="3">
+                    <a href={props.openseaUrl} target="_blank" rel="noopener noreferrer"><img src="OpenSea-Full-Logo-Dark.png" style={{ width: "30%" }}></img></a>
                 </Col>
             </Row>
         </CardBody>
@@ -57,46 +50,54 @@ export default class NFTAssetList extends Component {
     }
 
     componentDidMount() {
-        this.loadNFTAssetPage();
+        this.loadNFTAssetPage(1);
     }
 
     prevPage() {
-        this.setState({ assets: {}, loading: true });
-        this.loadNFTAssetPage(this.state.assets.prevPageCursor);
+        this.setState({ loading: true });
+        this.loadNFTAssetPage(this.state.pageNumber - 1, this.state.assets.prevPageCursor);
     }
 
     nextPage() {
-        this.setState({ assets: {}, loading: true });
-        this.loadNFTAssetPage(this.state.assets.nextPageCursor);
+        this.setState({ loading: true });
+        this.loadNFTAssetPage(this.state.pageNumber + 1, this.state.assets.nextPageCursor);
     }
 
     renderTransactionsTable(assets) {
         return (
-            <Col xl="9" lg="8">
-                <Row>
-                    {assets.dataList.map(t =>
-                        <Col key={t.transactionHash + t.tokenID} xl="4" lg="6">
-                            <FollowerCard collectionName={t.collectionName}
-                                tokenID={t.tokenID}
-                                imageUrl={t.imageUrl}
-                                purchasePrice={t.purchasePrice}
-                                floorPrice={t.floorPrice}
-                                profitLossAmount={t.profitLossAmount}
-                                profitLossPercent={t.profitLossPercent} />
-                        </Col>
-                    )}
-                </Row>
-                <span>
-                    <button disabled={assets.prevPageCursor == null} onClick={this.prevPage} >Previous</button>
-                    <button disabled={assets.nextPageCursor == null} onClick={this.nextPage}>Next</button>
-                </span>
-            </Col>
+            <Row className="justify-content-md-center">
+                <Col xl="9" lg="8">
+                    <Row>
+                        {assets.dataList.map(t =>
+                            <Col key={t.transactionHash + t.tokenID} xl="4" lg="6">
+                                <NFTAssetCard collectionName={t.collectionName}
+                                    tokenID={t.tokenID}
+                                    imageUrl={t.imageUrl}
+                                    openseaUrl={t.openseaUrl}
+                                    purchasePrice={t.purchasePrice}
+                                    floorPrice={t.floorPrice}
+                                    profitLossAmount={t.profitLossAmount}
+                                    profitLossPercent={t.profitLossPercent} />
+                            </Col>
+                        )}
+                    </Row>
+                    <Row className="justify-content-md-center">
+                        <Button color="secondary" className="btn-labeled" disabled={assets.prevPageCursor == null} onClick={this.prevPage}>
+                            <span className="btn-label"><i className="fa fa-arrow-left"></i></span> Previous
+                        </Button>
+                        <Button color="secondary" className="btn-labeled" disabled={assets.nextPageCursor == null} onClick={this.nextPage}>
+                            Next
+                            <span className="btn-label btn-label-right"><i className="fa fa-arrow-right"></i></span>
+                        </Button>
+                    </Row>
+                </Col>
+            </Row>
         );
     }
 
     render() {
         var contents = this.state.loading
-            ? <p><em>Loading...</em></p>
+            ? <p></p>
             : this.renderTransactionsTable(this.state.assets);
 
         return (
@@ -106,17 +107,19 @@ export default class NFTAssetList extends Component {
         );
     }
 
-    async loadNFTAssetPage(pageCursor) {
+    async loadNFTAssetPage(pageNumber, pageCursor) {
+        this.setState({ assets: {} });
         await Wallet.connect();
 
         if (Wallet.isConnected) {
-            var params = new URLSearchParams({ accountAddress: Wallet.address, pageCursor: pageCursor == null ? '' : pageCursor });
+            var params = new URLSearchParams({ accountAddress: Wallet.address, pageNumber: pageNumber, pageCursor: pageCursor == null ? '' : pageCursor });
             const response = await fetch('api/nftasset?' + params);
             const data = await response.json();
             console.log(data);
-            this.setState({ assets: data, loading: false });
-        } else {
-            this.setState({ assets: {}, loading: false });
+            this.setState({ assets: data, pageNumber: pageNumber });
         }
+
+
+        this.setState({ loading: false });
     }
 }
