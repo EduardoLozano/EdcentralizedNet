@@ -1,14 +1,29 @@
+import 'core-js/es/string';
+import 'core-js/es/array';
+import 'core-js/es/map';
+import 'core-js/es/set';
+import 'core-js/es/object';
+import 'core-js/es/promise';
+import 'raf/polyfill';
+
 import 'bootstrap/dist/css/bootstrap.css';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { BrowserRouter } from 'react-router-dom';
+import { Provider } from 'react-redux';
 import App from './App';
 import registerServiceWorker from './registerServiceWorker';
-import $ from "jquery";
-import Wallet from './helpers/Wallet'
+import configureStore from './store/store';
 
+const store = configureStore();
 const baseUrl = document.getElementsByTagName('base')[0].getAttribute('href');
 const rootElement = document.getElementById('root');
+
+ReactDOM.render(<Provider store={store}>
+                    <App />
+                </Provider>
+, rootElement);
+
+registerServiceWorker();
 
 //$(document).ready(async function () {
 //    await Wallet.connect();
@@ -48,11 +63,3 @@ const rootElement = document.getElementById('root');
 //        }
 //    }
 //});
-
-ReactDOM.render(
-    <BrowserRouter basename={baseUrl}>
-        <App />
-    </BrowserRouter>,
-    rootElement);
-
-registerServiceWorker();

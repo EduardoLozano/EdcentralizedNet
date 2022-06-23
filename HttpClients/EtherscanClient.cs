@@ -1,10 +1,12 @@
-﻿using EdcentralizedNet.Helpers;
+﻿using EdcentralizedNet.Cache;
+using EdcentralizedNet.Helpers;
 using EdcentralizedNet.Models;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -14,15 +16,17 @@ namespace EdcentralizedNet.HttpClients
     {
         private static string _apiKey;
         private readonly HttpClient _httpClient;
+        private readonly IRateLimitCache _rateLimitCache;
         JsonSerializerOptions _jsonSerializerOptions;
 
-        public EtherscanClient(HttpClient httpClient, IConfiguration configuration)
+        public EtherscanClient(HttpClient httpClient, IConfiguration configuration, IRateLimitCache rateLimitCache)
         {
             _apiKey = configuration.GetSection("Etherscan")["ApiKey"];
             _httpClient = httpClient;
             _httpClient.BaseAddress = new Uri(configuration.GetSection("Etherscan")["ApiBaseAddress"]);
             _jsonSerializerOptions = new JsonSerializerOptions();
             _jsonSerializerOptions.Converters.Add(new HexToLongConverter());
+            _rateLimitCache = rateLimitCache;
         }
 
         public async Task<EtherscanResponse<ERC721Transfer>> GetERC721TransfersForAccount(string accountAddress)
@@ -44,9 +48,16 @@ namespace EdcentralizedNet.HttpClients
 
                 builder.Query = query.ToString();
 
-                return await _httpClient.GetFromJsonAsync<EtherscanResponse<ERC721Transfer>>(builder.Uri);
+                EtherscanResponse<ERC721Transfer> result = new EtherscanResponse<ERC721Transfer>();
+
+                if (CanRequestEtherscan())
+                {
+                    result = await _httpClient.GetFromJsonAsync<EtherscanResponse<ERC721Transfer>>(builder.Uri);
+                }
+
+                return result;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
 
             }
@@ -68,7 +79,14 @@ namespace EdcentralizedNet.HttpClients
 
                 builder.Query = query.ToString();
 
-                return await _httpClient.GetFromJsonAsync<ParityResponse<EthTransaction>>(builder.Uri, _jsonSerializerOptions);
+                ParityResponse<EthTransaction> result = new ParityResponse<EthTransaction>();
+
+                if (CanRequestEtherscan())
+                {
+                    result = await _httpClient.GetFromJsonAsync<ParityResponse<EthTransaction>>(builder.Uri, _jsonSerializerOptions);
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -76,6 +94,21 @@ namespace EdcentralizedNet.HttpClients
             }
 
             return null;
+        }
+
+        private bool CanRequestEtherscan()
+        {
+            int retryCounter = 5;
+            bool isAllowed = _rateLimitCache.CanRequestEtherscan();
+
+            while (!isAllowed && retryCounter > 0)
+            {
+                Thread.Sleep(40);
+                isAllowed = _rateLimitCache.CanRequestEtherscan();
+                retryCounter--;
+            }
+
+            return isAllowed;
         }
     }
 }

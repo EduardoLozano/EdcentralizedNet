@@ -5,6 +5,7 @@ namespace EdcentralizedNet.Business
 {
     public interface INFTManager
     {
-        Task<NFTInformationList> GetAllNFTForAccount(string accountAddress, string pageCursor);
+        Task<CursorPagedList<NFTAsset>> GetNFTAssetPage(string accountAddress, string pageCursor);
+        Task<PortfolioInformation> GetPortfolioInformation(string accountAddress);
     }
 }

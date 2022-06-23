@@ -2,7 +2,7 @@
 
 namespace EdcentralizedNet.Models
 {
-    public class NFTInformation
+    public class NFTAsset
     {
         public string TransactionHash { get; set; }
         public string CollectionName { get; set; }
@@ -14,9 +14,9 @@ namespace EdcentralizedNet.Models
         public decimal ProfitLossPercent { get; set; }
         public string ImageUrl { get; set; }
 
-        public NFTInformation() { }
+        public NFTAsset() { }
 
-        public NFTInformation(OSAsset asset)
+        public NFTAsset(OSAsset asset)
         {
             CollectionName = asset.collection.name;
             TokenID = asset.token_id;

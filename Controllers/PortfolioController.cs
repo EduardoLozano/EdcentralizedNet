@@ -1,10 +1,7 @@
 ﻿using EdcentralizedNet.Business;
-using EdcentralizedNet.DataAccess;
-using EdcentralizedNet.HttpClients;
 using EdcentralizedNet.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace EdcentralizedNet.Controllers
@@ -23,12 +20,11 @@ namespace EdcentralizedNet.Controllers
         }
 
         [HttpGet]
-        public async Task<PortfolioInformation> Get(string accountAddress, string pageCursor)
+        public async Task<PortfolioInformation> Get(string accountAddress)
         {
             //Temp address
             accountAddress = "0xCCEc25758b6db66C4abD31E5333658FcF222dc26";
-            var tokens = await _nftManager.GetAllNFTForAccount(accountAddress, pageCursor);
-            return new PortfolioInformation(tokens);
+            return await _nftManager.GetPortfolioInformation(accountAddress);
         }
     }
 }

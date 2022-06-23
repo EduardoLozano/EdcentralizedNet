@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -7,10 +8,12 @@ namespace EdcentralizedNet.Cache
 {
     public class ApplicationCache : IApplicationCache
     {
+        private readonly ILogger<ApplicationCache> _logger;
         private readonly IDistributedCache _cache;
 
-        public ApplicationCache(IDistributedCache cache)
+        public ApplicationCache(IDistributedCache cache, ILogger<ApplicationCache> logger)
         {
+            _logger = logger;
             _cache = cache;
         }
 

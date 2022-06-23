@@ -61,8 +61,8 @@ namespace EdcentralizedNet.Cache
         {
             string key = string.Format(mintAssetEventKey, contractAddress, tokenId);
 
-            //Expire after it hasnt been accessed for two whole days
-            return _cache.Set(key, aEvent, expireSliding: new TimeSpan(2,0,0,0));
+            //Expire after it hasnt been accessed for a week
+            return _cache.Set(key, aEvent, expireSliding: new TimeSpan(7,0,0,0));
         }
 
         public Task RemoveAssetMintEvent(string contractAddress, string tokenId)

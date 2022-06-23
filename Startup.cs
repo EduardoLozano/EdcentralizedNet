@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using StackExchange.Redis;
 
 namespace EdcentralizedNet
 {
@@ -25,7 +26,11 @@ namespace EdcentralizedNet
         {
             services.AddControllersWithViews();
 
-            //Add Redis Cache
+            //Add Redis Cache multiplexer for complex operations
+            ConnectionMultiplexer multiplexer = ConnectionMultiplexer.Connect(Configuration.GetSection("RedisCache")["ConnectionString"]);
+            services.AddSingleton<IConnectionMultiplexer>(multiplexer);
+
+            //Add Redis Cache as the Distributed Cache for simple operations
             services.AddStackExchangeRedisCache(options =>
             {
                 options.Configuration = Configuration.GetSection("RedisCache")["ConnectionString"];
@@ -44,6 +49,8 @@ namespace EdcentralizedNet
             services.AddScoped<IApplicationCache, ApplicationCache>();
             services.AddScoped<IOpenseaCache, OpenseaCache>();
             services.AddScoped<IEtherscanCache, EtherscanCache>();
+            services.AddScoped<INFTCache, NFTCache>();
+            services.AddScoped<IRateLimitCache, RateLimitCache>();
 
             //Add Business Layer
             services.AddScoped<INFTManager, NFTManager>();

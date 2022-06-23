@@ -43,9 +43,6 @@ namespace EdcentralizedNet.DataAccess
 
                             //Update cache for next time around
                             await _cache.SetStatsForCollection(asset.collection.slug, stats);
-
-                            //Throttle calls to the API
-                            Thread.Sleep(50);
                         }
 
                         asset.collection.stats = stats;
@@ -79,9 +76,6 @@ namespace EdcentralizedNet.DataAccess
                                 //Update cache for next time around
                                 await _cache.SetAssetMintEvent(asset.asset_contract.address, asset.token_id, aEvent);
                             }
-
-                            //Throttle calls to the API
-                            Thread.Sleep(50);
                         }
 
                         asset.last_sale = aEvent;
@@ -118,9 +112,6 @@ namespace EdcentralizedNet.DataAccess
                             {
                                 await _cache.SetStatsForCollection(collection.slug, stats);
                             }
-
-                            //Throttle calls to the API
-                            Thread.Sleep(100);
                         }
 
                         collection.stats = stats;

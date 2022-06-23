@@ -1,4 +1,5 @@
-﻿using EdcentralizedNet.DataAccess;
+﻿using EdcentralizedNet.Cache;
+using EdcentralizedNet.DataAccess;
 using EdcentralizedNet.Models;
 using System;
 using System.Collections.Generic;
@@ -11,55 +12,102 @@ namespace EdcentralizedNet.Business
     {
         private readonly IEtherscanDA _etherscanDA;
         private readonly IOpenseaDA _openseaDA;
+        private readonly INFTCache _nftCache;
 
-        public NFTManager(IEtherscanDA etherscanDA, IOpenseaDA openseaDA)
+        public NFTManager(IEtherscanDA etherscanDA, IOpenseaDA openseaDA, INFTCache nftCache)
         {
             _etherscanDA = etherscanDA;
             _openseaDA = openseaDA;
+            _nftCache = nftCache;
         }
 
-        public async Task<NFTInformationList> GetAllNFTForAccount(string accountAddress, string pageCursor)
+        public async Task<CursorPagedList<NFTAsset>> GetNFTAssetPage(string accountAddress, string pageCursor = null)
         {
-            NFTInformationList nfi = new NFTInformationList();
+            //Check if we have this page cached already
+            CursorPagedList<NFTAsset> assetList = await _nftCache.GetNFTAssetPage(accountAddress, pageCursor);
 
-            //Get all assets from OpenSea
-            OSAssetList assets = await _openseaDA.GetAssetsForAccount(accountAddress, pageCursor);
-
-            if (assets != null)
+            if (assetList == null)
             {
-                //Map into GUI model
-                foreach (OSAsset asset in assets.assets)
-                {
-                    //If the last sale does not have a total price, then we assume it is a mint event
-                    //Attempt to get the transaction from etherscan for the mint price
-                    if (asset.last_sale != null && asset.last_sale.transaction != null && asset.last_sale.total_price == null)
-                    {
-                        EthTransaction trx = await _etherscanDA.GetEthTransaction(asset.last_sale.transaction.transaction_hash);
+                //Not found in cache so lets start fresh
+                assetList = new CursorPagedList<NFTAsset>();
 
-                        if (trx != null)
+                //Get all assets from OpenSea
+                OSAssetList assets = await _openseaDA.GetAssetsForAccount(accountAddress, pageCursor);
+
+                if (assets != null)
+                {
+                    //Map into GUI model
+                    foreach (OSAsset asset in assets.assets)
+                    {
+                        //If the last sale does not have a total price, then we assume it is a mint event
+                        //Attempt to get the transaction from etherscan for the mint price
+                        if (asset.last_sale != null && asset.last_sale.transaction != null && asset.last_sale.total_price == null)
                         {
-                            asset.last_sale.total_price = trx.value.ToString();
+                            EthTransaction trx = await _etherscanDA.GetEthTransaction(asset.last_sale.transaction.transaction_hash);
+
+                            if (trx != null)
+                            {
+                                asset.last_sale.total_price = trx.value.ToString();
+                            }
                         }
+
+                        assetList.DataList.Add(new NFTAsset(asset));
                     }
 
-                    nfi.Add(new NFTInformation(asset));
+                    assetList.NextPageCursor = assets.next;
+                    assetList.PrevPageCursor = assets.previous;
+
+                    //Store this page in cache for future use
+                    //TODO: Currently storing first page with null cursor on initial load and another cursor on going previous
+                    await _nftCache.SetNFTAssetPage(accountAddress, pageCursor, assetList);
                 }
-
-                //Set cursors for next and previous pages
-                //Setting the backwards because when in asc order, opensea returns previous cursor as the next page
-                nfi.NextPageCursor = assets.previous;
-                nfi.PrevPageCursor = assets.next;
-
-                //Reverse list because opensea simply returns the pages in reverse order when requested in asc order
-                nfi.Reverse();
             }
 
-            return nfi;
+            return assetList;
         }
 
-        public async Task<List<NFTInformation>> GetAllNFTForAccount2(string accountAddress)
+        public async Task<PortfolioInformation> GetPortfolioInformation(string accountAddress)
         {
-            List<NFTInformation> nfi = new List<NFTInformation>();
+            //Try and retrieve from cache first as this a very time consuming function
+            PortfolioInformation portfolio = await _nftCache.GetPortfolioInformation(accountAddress);
+
+            if(portfolio == null)
+            {
+                //If we did not find information in cache, retrieve all assets so that we can calculate values
+                List<NFTAsset> assets = await GetAllNFTAssets(accountAddress);
+
+                portfolio = new PortfolioInformation(assets);
+
+                //Store in cache so we dont have to keep making this expensive calculation
+                await _nftCache.SetPortfolioInformation(accountAddress, portfolio);
+            }
+
+            return portfolio;
+        }
+
+        private async Task<List<NFTAsset>> GetAllNFTAssets(string accountAddress)
+        {
+            List<NFTAsset> allAssets = new List<NFTAsset>();
+            CursorPagedList<NFTAsset> assetPage = new CursorPagedList<NFTAsset>();
+
+            do
+            {
+                assetPage = await GetNFTAssetPage(accountAddress, assetPage.NextPageCursor);
+
+                if (assetPage != null)
+                {
+                    allAssets.AddRange(assetPage.DataList);
+                }
+            }
+            while (!string.IsNullOrEmpty(assetPage.NextPageCursor));
+
+            return allAssets;
+        }
+
+        #region NOT USED | Getting NFT Assets using Etherscan
+        public async Task<List<NFTAsset>> GetAllNFTForAccount2(string accountAddress)
+        {
+            List<NFTAsset> nfi = new List<NFTAsset>();
 
             //First try and get all NFT collection info from OpenSea
             var osCollections = await _openseaDA.GetCollectionsForAccount(accountAddress);
@@ -79,13 +127,13 @@ namespace EdcentralizedNet.Business
             return nfi;
         }
 
-        private List<NFTInformation> JoinNFTData(IEnumerable<ERC721Transfer> tokensOwned, IEnumerable<OSCollection> osCollections)
+        private List<NFTAsset> JoinNFTData(IEnumerable<ERC721Transfer> tokensOwned, IEnumerable<OSCollection> osCollections)
         {
-            List<NFTInformation> nfi = new List<NFTInformation>();
+            List<NFTAsset> nfi = new List<NFTAsset>();
 
             foreach (var o in tokensOwned)
             {
-                NFTInformation nft = new NFTInformation();
+                NFTAsset nft = new NFTAsset();
                 var col = osCollections.FirstOrDefault(oc => oc.primary_asset_contracts.Any(a => a.address.Equals(o.contractAddress)));
 
                 if (col != null && !col.name.Equals("ENS: Ethereum Name Service"))
@@ -105,5 +153,6 @@ namespace EdcentralizedNet.Business
 
             return nfi;
         }
+        #endregion
     }
 }
