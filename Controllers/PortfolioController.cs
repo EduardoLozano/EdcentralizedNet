@@ -22,8 +22,6 @@ namespace EdcentralizedNet.Controllers
         [HttpGet]
         public async Task<PortfolioInformation> Get(string accountAddress)
         {
-            //Temp address
-            accountAddress = "0xCCEc25758b6db66C4abD31E5333658FcF222dc26";
             return await _nftManager.GetPortfolioInformation(accountAddress);
         }
     }

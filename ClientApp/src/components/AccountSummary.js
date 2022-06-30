@@ -16,7 +16,7 @@ export default class AccountSummary extends Component {
         this.loadPortfolioInformation();
     }
 
-    static renderHeaderTable(portfolio) {
+    static renderSummary(portfolio) {
         var profitLossSymbolClass = "col-4 d-flex align-items-center justify-content-center rounded-left ";
         var profitLossCardClass = "col-8 py-3 rounded-right ";
         var arrowSymbol = "fa-3x far ";
@@ -34,41 +34,57 @@ export default class AccountSummary extends Component {
         return (
             <ContentWrapper>
                 <Row className="justify-content-md-center">
-                    <Col xl={3} md={6}>
-                        { /* START card */}
-                        <div className="card flex-row align-items-center align-items-stretch border-0">
-                            <div className="col-4 d-flex align-items-center bg-primary-dark justify-content-center rounded-left">
-                                <em className="fa-3x fab fa-ethereum"></em>
-                            </div>
-                            <div className="col-8 py-3 bg-primary rounded-right">
-                                <div className="h2 mt-0">{portfolio.investedValue} <small>ETH</small></div>
-                                <div className="text-uppercase">Invested</div>
-                            </div>
-                        </div>
-                    </Col>
-                    <Col xl={3} md={6}>
-                        { /* START card */}
-                        <div className="card flex-row align-items-center align-items-stretch border-0">
-                            <div className={profitLossSymbolClass}>
-                                <em className={arrowSymbol}></em>
-                            </div>
-                            <div className={profitLossCardClass}>
-                                <div className="h2 mt-0">{portfolio.profitLossAmount} <small>ETH</small></div>
-                                <div className="text-uppercase">Profit & Loss</div>
-                            </div>
-                        </div>
-                    </Col>
-                    <Col xl={3} lg={6} md={12}>
-                        { /* START card */}
-                        <div className="card flex-row align-items-center align-items-stretch border-0">
-                            <div className={profitLossSymbolClass}>
-                                <em className={arrowSymbol}></em>
-                            </div>
-                            <div className={profitLossCardClass}>
-                                <div className="h2 mt-0">{portfolio.profitLossPercent} <small>%</small></div>
-                                <div className="text-uppercase">Profit & Loss %</div>
-                            </div>
-                        </div>
+                    <Col xl={9} lg={8}>
+                        <Row>
+                            <Col xl={3} md={6}>
+                                { /* START card */}
+                                <div className="card flex-row align-items-center align-items-stretch border-0">
+                                    <div className="col-4 d-flex align-items-center bg-primary-dark justify-content-center rounded-left">
+                                        <em className="fa-3x fab fa-ethereum"></em>
+                                    </div>
+                                    <div className="col-8 py-3 bg-primary rounded-right">
+                                        <div className="text-uppercase">Account Value</div>
+                                        <div className="h2 mt-0">{portfolio.accountValue}</div>
+                                    </div>
+                                </div>
+                            </Col>
+                            <Col xl={3} md={6}>
+                                { /* START card */}
+                                <div className="card flex-row align-items-center align-items-stretch border-0">
+                                    <div className="col-4 d-flex align-items-center bg-primary-dark justify-content-center rounded-left">
+                                        <em className="fa-3x fab fa-ethereum"></em>
+                                    </div>
+                                    <div className="col-8 py-3 bg-primary rounded-right">
+                                        <div className="text-uppercase">Initial Investment</div>
+                                        <div className="h2 mt-0">{portfolio.investedValue}</div>
+                                    </div>
+                                </div>
+                            </Col>
+                            <Col xl={3} md={6}>
+                                { /* START card */}
+                                <div className="card flex-row align-items-center align-items-stretch border-0">
+                                    <div className={profitLossSymbolClass}>
+                                        <em className={arrowSymbol}></em>
+                                    </div>
+                                    <div className={profitLossCardClass}>
+                                        <div className="text-uppercase">Profit & Loss</div>
+                                        <div className="h2 mt-0">{portfolio.profitLossAmount} <small>ETH</small></div>
+                                    </div>
+                                </div>
+                            </Col>
+                            <Col xl={3} md={6}>
+                                { /* START card */}
+                                <div className="card flex-row align-items-center align-items-stretch border-0">
+                                    <div className={profitLossSymbolClass}>
+                                        <em className={arrowSymbol}></em>
+                                    </div>
+                                    <div className={profitLossCardClass}>
+                                        <div className="text-uppercase">Profit & Loss %</div>
+                                        <div className="h2 mt-0">{portfolio.profitLossPercent} <small>%</small></div>
+                                    </div>
+                                </div>
+                            </Col>
+                        </Row>
                     </Col>
                 </Row>
             </ContentWrapper>
@@ -78,7 +94,7 @@ export default class AccountSummary extends Component {
     static renderLoading() {
         return (
             <ContentWrapper>
-                <Row>
+                <Row className="justify-content-md-center">
                     <Col lg="9">
                         <div className="card card-default">
                             <div className="card-body loader-demo d-flex align-items-center justify-content-center">
@@ -91,22 +107,22 @@ export default class AccountSummary extends Component {
                                 </div>
                             </div>
                             <div className="card-body d-flex align-items-center justify-content-center">
-                                <span>Please bare with us</span>
+                                <span>Summarizing all your NFT information</span>
                             </div>
                             <div className="card-body d-flex align-items-center justify-content-center">
-                                <span>Loading and calculating your entire portfolio</span>
+                                <span>Initial load will take the longest so you wont have to wait later!</span>
                             </div>
                         </div>
                     </Col>
                 </Row>
             </ContentWrapper>
-            );
+        );
     }
 
     render() {
         var contents = this.state.loading
             ? AccountSummary.renderLoading()
-            : AccountSummary.renderHeaderTable(this.state.portfolio);
+            : AccountSummary.renderSummary(this.state.portfolio);
 
         return (
             <div>
@@ -116,8 +132,6 @@ export default class AccountSummary extends Component {
     }
 
     async loadPortfolioInformation(pageCursor) {
-        await Wallet.connect();
-
         if (Wallet.isConnected) {
             var params = new URLSearchParams({ accountAddress: Wallet.address });
             const response = await fetch('api/portfolio?' + params);

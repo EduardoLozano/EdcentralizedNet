@@ -22,6 +22,6 @@
         public decimal average_price { get; set; }
         public decimal num_reports { get; set; }
         public decimal market_cap { get; set; }
-        public decimal floor_price { get; set; }
+        public decimal? floor_price { get; set; }
     }
 }

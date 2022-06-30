@@ -8,7 +8,7 @@ const NFTAssetCard = props => (
         <CardBody>
             <Row>
                 <Col col="6" className="text-center">
-                    <img className="rounded-circle thumb96 mb-2" src={props.imageUrl} />
+                    <img className="rounded-circle thumb96 mb-2" src={props.imageUrl} alt="" />
                     <p className="h4 text-bold mb-0 text-truncate">{props.tokenID}</p>
                 </Col>
                 <Col col="6" className="text-left">
@@ -30,7 +30,7 @@ const NFTAssetCard = props => (
         <CardBody>
             <Row>
                 <Col col="3">
-                    <a href={props.openseaUrl} target="_blank" rel="noopener noreferrer"><img src="OpenSea-Full-Logo-Dark.png" style={{ width: "30%" }}></img></a>
+                    <a href={props.openseaUrl} target="_blank" rel="noopener noreferrer"><img src="OpenSea-Full-Logo-Dark.png" style={{ width: "30%" }} alt="OpenSea Link"></img></a>
                 </Col>
             </Row>
         </CardBody>
@@ -42,7 +42,7 @@ export default class NFTAssetList extends Component {
 
     constructor(props) {
         super(props);
-        this.state = { assets: {}, loading: true };
+        this.state = { assets: { dataList: [] }, loading: true };
 
         //Function bindings to this
         this.prevPage = this.prevPage.bind(this);
@@ -63,13 +63,34 @@ export default class NFTAssetList extends Component {
         this.loadNFTAssetPage(this.state.pageNumber + 1, this.state.assets.nextPageCursor);
     }
 
+    static renderLoading() {
+        return (
+            <Row className="justify-content-md-center">
+                <Col lg="9">
+                    <div className="card card-default">
+                        <div className="card-body loader-demo d-flex align-items-center justify-content-center">
+                            <div className="ball-triangle-path">
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                            </div>
+                        </div>
+                        <div className="card-body d-flex align-items-center justify-content-center">
+                            <span>Getting fresh NFT data for you!</span>
+                        </div>
+                    </div>
+                </Col>
+            </Row>
+        );
+    }
+
     renderTransactionsTable(assets) {
         return (
             <Row className="justify-content-md-center">
                 <Col xl="9" lg="8">
                     <Row>
                         {assets.dataList.map(t =>
-                            <Col key={t.transactionHash + t.tokenID} xl="4" lg="6">
+                            <Col key={t.transactionHash + t.tokenID} xl="3" lg="6">
                                 <NFTAssetCard collectionName={t.collectionName}
                                     tokenID={t.tokenID}
                                     imageUrl={t.imageUrl}
@@ -97,7 +118,7 @@ export default class NFTAssetList extends Component {
 
     render() {
         var contents = this.state.loading
-            ? <p></p>
+            ? NFTAssetList.renderLoading()
             : this.renderTransactionsTable(this.state.assets);
 
         return (
@@ -108,8 +129,7 @@ export default class NFTAssetList extends Component {
     }
 
     async loadNFTAssetPage(pageNumber, pageCursor) {
-        this.setState({ assets: {} });
-        await Wallet.connect();
+        this.setState({ assets: { dataList: [] } });
 
         if (Wallet.isConnected) {
             var params = new URLSearchParams({ accountAddress: Wallet.address, pageNumber: pageNumber, pageCursor: pageCursor == null ? '' : pageCursor });

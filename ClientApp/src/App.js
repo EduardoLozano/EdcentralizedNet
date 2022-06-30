@@ -1,10 +1,6 @@
 import React, { Component } from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import { Route } from 'react-router';
-import { Home } from './components/Home';
-import { FetchData } from './components/FetchData';
-import { Counter } from './components/Counter';
-import { Portfolio } from './components/Portfolio';
+import Wallet from './helpers/Wallet';
 
 // App Routes
 import Routes from './Routes';
@@ -17,6 +13,24 @@ import './styles/app.scss'
 export default class App extends Component {
     static displayName = App.name;
 
+    constructor(props) {
+        super(props);
+        this.state = { walletIsConnected: false };
+    }
+
+    async componentDidMount() {
+        await Wallet.connect(() => this.updateWalletState());
+        this.updateWalletState();
+    }
+
+    updateWalletState() {
+        if (Wallet.isConnected) {
+            this.setState({ walletIsConnected: true });
+        } else {
+            this.setState({ walletIsConnected: false });
+        }
+    }
+
     render() {
         // specify base href from env varible 'PUBLIC_URL'
         // use only if application isn't served from the root
@@ -26,7 +40,7 @@ export default class App extends Component {
 
         return (
             <BrowserRouter basename={basename}>
-                <Routes/>
+                <Routes />
             </BrowserRouter>
         );
     }

@@ -147,7 +147,7 @@ namespace EdcentralizedNet.Business
                     nft.TokenID = o.tokenID;
                     nft.PurchaseDate = DateTimeOffset.FromUnixTimeSeconds(o.timeStamp).DateTime;
                     nft.PurchasePrice = (decimal)o.transaction.value / 1000000000000000000;
-                    nft.FloorPrice = col.stats != null ? col.stats.floor_price : 0;
+                    nft.FloorPrice = col.stats != null && col.stats.floor_price.HasValue ? col.stats.floor_price.Value : 0;
                     nft.ProfitLossAmount = nft.FloorPrice - nft.PurchasePrice;
                     nft.ProfitLossPercent = Math.Round((nft.ProfitLossAmount / (nft.PurchasePrice.Equals(0) ? 1 : nft.PurchasePrice)) * 100, 4);
 

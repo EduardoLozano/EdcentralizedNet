@@ -15,7 +15,6 @@ import registerServiceWorker from './registerServiceWorker';
 import configureStore from './store/store';
 
 const store = configureStore();
-const baseUrl = document.getElementsByTagName('base')[0].getAttribute('href');
 const rootElement = document.getElementById('root');
 
 ReactDOM.render(<Provider store={store}>

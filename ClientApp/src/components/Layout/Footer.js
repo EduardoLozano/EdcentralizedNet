@@ -5,8 +5,10 @@ class Footer extends Component {
     render() {
         const year = new Date().getFullYear()
         return (
-            <footer className="footer-container">
-                <span>&copy; {year} - EdcentralizedNet</span>
+            <footer className="footer-container align-items-center justify-content-center" style={{ marginLeft: "auto" }}>
+                <div className="text-center">
+                    <span>&copy; {year} - EdcentralizedNet</span>
+                </div>
             </footer>
         );
     }

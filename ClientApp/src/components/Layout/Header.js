@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import Wallet from '../../helpers/Wallet';
 
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -7,36 +8,58 @@ import * as actions from '../../store/actions/actions';
 
 class Header extends Component {
 
-    componentDidMount() {
+    constructor(props) {
+        super(props);
+        this.state = { connectedAs: "" };
     }
 
-    resize () {
-        // all IE friendly dispatchEvent
-        var evt = document.createEvent('UIEvents');
-        evt.initUIEvent('resize', true, false, window, 0);
-        window.dispatchEvent(evt);
-        // modern dispatchEvent way
-        // window.dispatchEvent(new Event('resize'));
+    async componentDidMount() {
+        await Wallet.connect(() => this.updateWalletState());
+        this.updateWalletState();
+    }
+
+    updateWalletState() {
+        if (Wallet.isConnected) {
+            var connectedAs = Wallet.address.substr(0, 5);
+            connectedAs += "...";
+            connectedAs += Wallet.address.substr(Wallet.address.length - 4, Wallet.address.length - 1);
+            this.setState({ connectedAs: connectedAs });
+        } else {
+            this.setState({ connectedAs: "" });
+        }
+    }
+
+    signOutWallet() {
+        alert("Signing out");
     }
 
     render() {
+
+        var connectedAsLabel = <div></div>;
+
+        if (this.state.connectedAs != "") {
+            connectedAsLabel = <ul className="navbar-nav flex-row">
+                <li className="nav-item">
+                    <div className="mr-3" style={{ color: 'white' }}>
+                        <em className="fa-lg fas fa-user-astronaut mr-2"></em>
+                        Connected as: {this.state.connectedAs}
+                    </div>
+                </li>
+            </ul>;
+        }
+
         return (
             <header className="topnavbar-wrapper">
-                { /* START Top Navbar */ }
-                <nav className="navbar topnavbar align-items-center justify-content-center">
-                    { /* START navbar header */ }
+                <nav className="navbar topnavbar">
                     <div className="navbar-header">
-                        <a className="navbar-brand" href="#/">
-                            <div className="brand-logo text-center">
-                                <span className="" style={{ color: 'white' }}>EdcentralizedNet</span>
-                            </div>
-                        </a>
+                        <div className="navbar-brand brand-logo">
+                            <span className="" style={{ color: 'white' }}>EdcentralizedNet</span>
+                        </div>
                     </div>
-                    { /* END navbar header */ }
+                    {connectedAsLabel}
                 </nav>
-                { /* END Top Navbar */ }
             </header>
-            );
+        );
     }
 
 }
