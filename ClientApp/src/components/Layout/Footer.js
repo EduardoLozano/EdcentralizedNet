@@ -7,7 +7,7 @@ class Footer extends Component {
         return (
             <footer className="footer-container align-items-center justify-content-center" style={{ marginLeft: "auto" }}>
                 <div className="text-center">
-                    <span>&copy; {year} - EdcentralizedNet</span>
+                    <span>&copy; {year} - NFT Peek</span>
                 </div>
             </footer>
         );

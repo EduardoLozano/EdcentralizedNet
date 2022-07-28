@@ -59,6 +59,10 @@ namespace EdcentralizedNet.HttpClients
                 {
                     result = await _httpClient.GetFromJsonAsync<OSAssetList>(builder.Uri);
                 }
+                else
+                {
+                    _logger.LogError($"Could not request opensea assets for '{accountAddress}' because of rate limit.");
+                }
 
                 //When in asc order, opensea returns the pages in asc order, instead of all items in asc order
                 //Since the default is desc order, the most recent item ends up on the first page but last on the page
@@ -115,6 +119,10 @@ namespace EdcentralizedNet.HttpClients
                 {
                     result = await _httpClient.GetFromJsonAsync<OSEventList>(builder.Uri);
                 }
+                else
+                {
+                    _logger.LogError($"Could not request opensea asset events for '{accountAddress}|{contractAddress}|{tokenId}' because of rate limit.");
+                }
 
                 return result;
             }
@@ -146,6 +154,10 @@ namespace EdcentralizedNet.HttpClients
                 {
                     result = await _httpClient.GetFromJsonAsync<List<OSCollection>>(builder.Uri);
                 }
+                else
+                {
+                    _logger.LogError($"Could not request opensea collections for '{accountAddress}' because of rate limit.");
+                }
 
                 return result;
             }
@@ -169,6 +181,10 @@ namespace EdcentralizedNet.HttpClients
                 if(CanRequestOpenSea())
                 {
                     result = await _httpClient.GetFromJsonAsync<OSCollection>(builder.Uri);
+                }
+                else
+                {
+                    _logger.LogError($"Could not request opensea stats for '{collectionSlug}' because of rate limit.");
                 }
 
                 if (result != null)
@@ -210,14 +226,24 @@ namespace EdcentralizedNet.HttpClients
 
         private bool CanRequestOpenSea()
         {
-            int retryCounter = 5;
+            int retryLimit = 20;
+            int retryAttempts = 0;
             bool isAllowed = _rateLimitCache.CanRequestOpensea();
 
-            while(!isAllowed && retryCounter > 0)
+            while(!isAllowed && retryAttempts < retryLimit)
             {
                 Thread.Sleep(50);
                 isAllowed = _rateLimitCache.CanRequestOpensea();
-                retryCounter--;
+                ++retryAttempts;
+            }
+
+            if (!isAllowed)
+            {
+                _logger.LogError($"CanRequestOpenSea | Unable to obtain permission for Opensea request because of the rate limit after {retryAttempts} retry attempts.");
+            }
+            else
+            {
+                _logger.LogInformation($"CanRequestOpenSea | Obtained permission for Opensea request after {retryAttempts} retry attempts.");
             }
 
             return isAllowed;

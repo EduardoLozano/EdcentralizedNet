@@ -53,7 +53,7 @@ class Header extends Component {
                 <nav className="navbar topnavbar">
                     <div className="navbar-header">
                         <div className="navbar-brand brand-logo">
-                            <span className="" style={{ color: 'white' }}>EdcentralizedNet</span>
+                            <span className="" style={{ color: 'white' }}>NFT Peek</span>
                         </div>
                     </div>
                     {connectedAsLabel}

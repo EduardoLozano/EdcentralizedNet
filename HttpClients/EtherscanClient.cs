@@ -88,6 +88,10 @@ namespace EdcentralizedNet.HttpClients
                 {
                     result = await _httpClient.GetFromJsonAsync<ParityResponse<EthTransaction>>(builder.Uri, _jsonSerializerOptions);
                 }
+                else
+                {
+                    _logger.LogError($"Could not request etherscan transaction for '{transactionHash}' because of rate limit.");
+                }
 
                 return result;
             }
@@ -101,14 +105,24 @@ namespace EdcentralizedNet.HttpClients
 
         private bool CanRequestEtherscan()
         {
-            int retryCounter = 5;
+            int retryLimit = 20;
+            int retryAttempts = 0;
             bool isAllowed = _rateLimitCache.CanRequestEtherscan();
 
-            while (!isAllowed && retryCounter > 0)
+            while (!isAllowed && retryAttempts < retryLimit)
             {
                 Thread.Sleep(40);
                 isAllowed = _rateLimitCache.CanRequestEtherscan();
-                retryCounter--;
+                ++retryAttempts;
+            }
+
+            if (!isAllowed)
+            {
+                _logger.LogError($"CanRequestEtherscan | Unable to obtain permission for Etherscan request because of the rate limit after {retryAttempts} retry attempts.");
+            }
+            else
+            {
+                _logger.LogInformation($"CanRequestEtherscan | Obtained permission for Etherscan request after {retryAttempts} retry attempts.");
             }
 
             return isAllowed;
