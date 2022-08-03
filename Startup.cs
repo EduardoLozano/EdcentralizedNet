@@ -1,7 +1,7 @@
 using EdcentralizedNet.Business;
 using EdcentralizedNet.Cache;
-using EdcentralizedNet.DataAccess;
 using EdcentralizedNet.HttpClients;
+using EdcentralizedNet.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
@@ -41,9 +41,13 @@ namespace EdcentralizedNet
             services.AddHttpClient<EtherscanClient>();
             services.AddHttpClient<OpenseaClient>();
 
-            //Add Data Access Layer
-            services.AddScoped<IEtherscanDA, EtherscanDA>();
-            services.AddScoped<IOpenseaDA, OpenseaDA>();
+            //Add Repository Layer
+            services.AddScoped<IUserAccountRepository, UserAccountRepository>();
+
+            //Add Business Layer
+            services.AddScoped<IEtherscanManager, EtherscanManager>();
+            services.AddScoped<IOpenseaManager, OpenseaManager>();
+            services.AddScoped<INFTManager, NFTManager>();
 
             //Add Caching Layer
             services.AddScoped<IApplicationCache, ApplicationCache>();
@@ -52,8 +56,6 @@ namespace EdcentralizedNet
             services.AddScoped<INFTCache, NFTCache>();
             services.AddScoped<IRateLimitCache, RateLimitCache>();
 
-            //Add Business Layer
-            services.AddScoped<INFTManager, NFTManager>();
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>

@@ -18,13 +18,13 @@ namespace EdcentralizedNet.Cache
             _cache = cache;
         }
 
-        public Task<EthTransaction> GetEthTransaction(string transactionHash)
+        public Task<EtherscanTransaction> GetEthTransaction(string transactionHash)
         {
             string key = string.Format(ethTransactionKey, transactionHash);
-            return _cache.Get<EthTransaction>(key);
+            return _cache.Get<EtherscanTransaction>(key);
         }
 
-        public Task SetEthTransaction(string transactionHash, EthTransaction transaction)
+        public Task SetEthTransaction(string transactionHash, EtherscanTransaction transaction)
         {
             string key = string.Format(ethTransactionKey, transactionHash);
 

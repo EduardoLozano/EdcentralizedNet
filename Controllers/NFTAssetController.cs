@@ -26,6 +26,8 @@ namespace EdcentralizedNet.Controllers
         [HttpGet]
         public async Task<CursorPagedList<NFTAsset>> Get(string accountAddress, int pageNumber, string pageCursor)
         {
+            //Testing address that has thousands of NFTs
+            //accountAddress = "0xeEE5Eb24E7A0EA53B75a1b9aD72e7D20562f4283";
             var nftAssets = await _nftManager.GetNFTAssetPage(accountAddress, pageNumber, pageCursor);
             return nftAssets;
         }

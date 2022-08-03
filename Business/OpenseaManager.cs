@@ -7,15 +7,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EdcentralizedNet.DataAccess
+namespace EdcentralizedNet.Business
 {
-    public class OpenseaDA : IOpenseaDA
+    public class OpenseaManager : IOpenseaManager
     {
-        private readonly ILogger<OpenseaDA> _logger;
+        private readonly ILogger<OpenseaManager> _logger;
         private readonly OpenseaClient _client;
         private readonly IOpenseaCache _cache;
 
-        public OpenseaDA(ILogger<OpenseaDA> logger, OpenseaClient client, IOpenseaCache cache)
+        public OpenseaManager(ILogger<OpenseaManager> logger, OpenseaClient client, IOpenseaCache cache)
         {
             _logger = logger;
             _client = client;

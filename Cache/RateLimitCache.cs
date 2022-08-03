@@ -27,7 +27,7 @@ namespace EdcentralizedNet.Cache
 
         public bool CanRequestEtherscan()
         {
-            //Etherscan currently limits to 5 requests per second and 100K calls a day (1000 ms)
+            //Etherscan currently limits to 5 requests per second (1000 ms) and 100K calls a day
             string key = "EtherscanApi";
             long rateInterval = 1000;
             int rateLimit = 5;

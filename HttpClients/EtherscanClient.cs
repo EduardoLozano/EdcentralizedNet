@@ -68,7 +68,7 @@ namespace EdcentralizedNet.HttpClients
             return null;
         }
 
-        public async Task<ParityResponse<EthTransaction>> GetEthTransaction(string transactionHash)
+        public async Task<ParityResponse<EtherscanTransaction>> GetEthTransaction(string transactionHash)
         {
             try
             {
@@ -82,11 +82,11 @@ namespace EdcentralizedNet.HttpClients
 
                 builder.Query = query.ToString();
 
-                ParityResponse<EthTransaction> result = new ParityResponse<EthTransaction>();
+                ParityResponse<EtherscanTransaction> result = new ParityResponse<EtherscanTransaction>();
 
                 if (CanRequestEtherscan())
                 {
-                    result = await _httpClient.GetFromJsonAsync<ParityResponse<EthTransaction>>(builder.Uri, _jsonSerializerOptions);
+                    result = await _httpClient.GetFromJsonAsync<ParityResponse<EtherscanTransaction>>(builder.Uri, _jsonSerializerOptions);
                 }
                 else
                 {

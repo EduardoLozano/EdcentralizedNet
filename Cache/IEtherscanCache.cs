@@ -5,8 +5,8 @@ namespace EdcentralizedNet.Cache
 {
     public interface IEtherscanCache
     {
-        Task<EthTransaction> GetEthTransaction(string transactionHash);
-        Task SetEthTransaction(string transactionHash, EthTransaction transaction);
+        Task<EtherscanTransaction> GetEthTransaction(string transactionHash);
+        Task SetEthTransaction(string transactionHash, EtherscanTransaction transaction);
         Task RemoveEthTransaction(string transactionHash);
     }
 }

@@ -22,6 +22,8 @@ namespace EdcentralizedNet.Controllers
         [HttpGet]
         public async Task<PortfolioInformation> Get(string accountAddress)
         {
+            //Testing address that has thousands of NFTs
+            //accountAddress = "0xeEE5Eb24E7A0EA53B75a1b9aD72e7D20562f4283";
             return await _nftManager.GetPortfolioInformation(accountAddress);
         }
     }

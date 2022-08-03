@@ -1,6 +1,6 @@
 ﻿using EdcentralizedNet.Cache;
-using EdcentralizedNet.DataAccess;
 using EdcentralizedNet.Models;
+using EdcentralizedNet.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,15 +10,18 @@ namespace EdcentralizedNet.Business
 {
     public class NFTManager : INFTManager
     {
-        private readonly IEtherscanDA _etherscanDA;
-        private readonly IOpenseaDA _openseaDA;
+        private readonly IEtherscanManager _etherscanManager;
+        private readonly IOpenseaManager _openseaManager;
+        private readonly IUserAccountRepository _userAccountRepository;
         private readonly INFTCache _nftCache;
 
-        public NFTManager(IEtherscanDA etherscanDA, IOpenseaDA openseaDA, INFTCache nftCache)
+        public NFTManager(IEtherscanManager etherscanManager, IOpenseaManager openseaManager,
+                          IUserAccountRepository userAccountRepository, INFTCache nftCache)
         {
-            _etherscanDA = etherscanDA;
-            _openseaDA = openseaDA;
+            _etherscanManager = etherscanManager;
+            _openseaManager = openseaManager;
             _nftCache = nftCache;
+            _userAccountRepository = userAccountRepository;
         }
 
         public async Task<CursorPagedList<NFTAsset>> GetNFTAssetPage(string accountAddress, int pageNumber, string pageCursor = null)
@@ -34,7 +37,7 @@ namespace EdcentralizedNet.Business
                 assetList = new CursorPagedList<NFTAsset>();
 
                 //Get all assets from OpenSea
-                OSAssetList assets = await _openseaDA.GetAssetsForAccount(accountAddress, pageCursor);
+                OSAssetList assets = await _openseaManager.GetAssetsForAccount(accountAddress, pageCursor);
 
                 if (assets != null)
                 {
@@ -45,7 +48,7 @@ namespace EdcentralizedNet.Business
                         //Attempt to get the transaction from etherscan for the mint price
                         if (asset.last_sale != null && asset.last_sale.transaction != null && asset.last_sale.total_price == null)
                         {
-                            EthTransaction trx = await _etherscanDA.GetEthTransaction(asset.last_sale.transaction.transaction_hash);
+                            EtherscanTransaction trx = await _etherscanManager.GetEthTransaction(asset.last_sale.transaction.transaction_hash);
 
                             if (trx != null)
                             {
@@ -70,10 +73,13 @@ namespace EdcentralizedNet.Business
 
         public async Task<PortfolioInformation> GetPortfolioInformation(string accountAddress)
         {
+            //Make user account address is saved in our records
+            await _userAccountRepository.AddAsync(new UserAccount() { WalletAddress = accountAddress });
+
             //Try and retrieve from cache first as this a very time consuming function
             PortfolioInformation portfolio = await _nftCache.GetPortfolioInformation(accountAddress);
 
-            if(portfolio == null)
+            if (portfolio == null)
             {
                 //If we did not find information in cache, retrieve all assets so that we can calculate values
                 List<NFTAsset> assets = await GetAllNFTAssets(accountAddress);
@@ -109,54 +115,54 @@ namespace EdcentralizedNet.Business
         }
 
         #region NOT USED | Getting NFT Assets using Etherscan
-        public async Task<List<NFTAsset>> GetAllNFTForAccount2(string accountAddress)
-        {
-            List<NFTAsset> nfi = new List<NFTAsset>();
+        //public async Task<List<NFTAsset>> GetAllNFTForAccount2(string accountAddress)
+        //{
+        //    List<NFTAsset> nfi = new List<NFTAsset>();
 
-            //First try and get all NFT collection info from OpenSea
-            var osCollections = await _openseaDA.GetCollectionsForAccount(accountAddress);
+        //    //First try and get all NFT collection info from OpenSea
+        //    var osCollections = await _openseaManager.GetCollectionsForAccount(accountAddress);
 
-            if (osCollections != null && osCollections.Any())
-            {
-                //Now lets get all the NFTs owned by address from etherscan
-                var tokensOwned = await _etherscanDA.GetERC721OwnedByAccount(accountAddress);
+        //    if (osCollections != null && osCollections.Any())
+        //    {
+        //        //Now lets get all the NFTs owned by address from etherscan
+        //        var tokensOwned = await _etherscanManager.GetERC721OwnedByAccount(accountAddress);
 
-                if (tokensOwned != null && tokensOwned.Any())
-                {
-                    //Lets manipulate data as needed
-                    nfi = JoinNFTData(tokensOwned, osCollections);
-                }
-            }
+        //        if (tokensOwned != null && tokensOwned.Any())
+        //        {
+        //            //Lets manipulate data as needed
+        //            nfi = JoinNFTData(tokensOwned, osCollections);
+        //        }
+        //    }
 
-            return nfi;
-        }
+        //    return nfi;
+        //}
 
-        private List<NFTAsset> JoinNFTData(IEnumerable<ERC721Transfer> tokensOwned, IEnumerable<OSCollection> osCollections)
-        {
-            List<NFTAsset> nfi = new List<NFTAsset>();
+        //private List<NFTAsset> JoinNFTData(IEnumerable<ERC721Transfer> tokensOwned, IEnumerable<OSCollection> osCollections)
+        //{
+        //    List<NFTAsset> nfi = new List<NFTAsset>();
 
-            foreach (var o in tokensOwned)
-            {
-                NFTAsset nft = new NFTAsset();
-                var col = osCollections.FirstOrDefault(oc => oc.primary_asset_contracts.Any(a => a.address.Equals(o.contractAddress)));
+        //    foreach (var o in tokensOwned)
+        //    {
+        //        NFTAsset nft = new NFTAsset();
+        //        var col = osCollections.FirstOrDefault(oc => oc.primary_asset_contracts.Any(a => a.address.Equals(o.contractAddress)));
 
-                if (col != null && !col.name.Equals("ENS: Ethereum Name Service"))
-                {
-                    nft.TransactionHash = o.hash;
-                    nft.CollectionName = col.name;
-                    nft.TokenID = o.tokenID;
-                    nft.PurchaseDate = DateTimeOffset.FromUnixTimeSeconds(o.timeStamp).DateTime;
-                    nft.PurchasePrice = (decimal)o.transaction.value / 1000000000000000000;
-                    nft.FloorPrice = col.stats != null && col.stats.floor_price.HasValue ? col.stats.floor_price.Value : 0;
-                    nft.ProfitLossAmount = nft.FloorPrice - nft.PurchasePrice;
-                    nft.ProfitLossPercent = Math.Round((nft.ProfitLossAmount / (nft.PurchasePrice.Equals(0) ? 1 : nft.PurchasePrice)) * 100, 4);
+        //        if (col != null && !col.name.Equals("ENS: Ethereum Name Service"))
+        //        {
+        //            nft.TransactionHash = o.hash;
+        //            nft.CollectionName = col.name;
+        //            nft.TokenID = o.tokenID;
+        //            nft.PurchaseDate = DateTimeOffset.FromUnixTimeSeconds(o.timeStamp).DateTime;
+        //            nft.PurchasePrice = (decimal)o.transaction.value / 1000000000000000000;
+        //            nft.FloorPrice = col.stats != null && col.stats.floor_price.HasValue ? col.stats.floor_price.Value : 0;
+        //            nft.ProfitLossAmount = nft.FloorPrice - nft.PurchasePrice;
+        //            nft.ProfitLossPercent = Math.Round((nft.ProfitLossAmount / (nft.PurchasePrice.Equals(0) ? 1 : nft.PurchasePrice)) * 100, 4);
 
-                    nfi.Add(nft);
-                }
-            }
+        //            nfi.Add(nft);
+        //        }
+        //    }
 
-            return nfi;
-        }
+        //    return nfi;
+        //}
         #endregion
     }
 }

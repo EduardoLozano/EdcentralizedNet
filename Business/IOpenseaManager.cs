@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace EdcentralizedNet.DataAccess
+namespace EdcentralizedNet.Business
 {
-    public interface IOpenseaDA
+    public interface IOpenseaManager
     {
-        Task<IEnumerable<OSCollection>> GetCollectionsForAccount(string accountAddress);
         Task<OSAssetList> GetAssetsForAccount(string accountAddress, string cursor = null);
     }
 }

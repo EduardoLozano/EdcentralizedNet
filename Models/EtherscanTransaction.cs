@@ -3,7 +3,7 @@ using System.Globalization;
 
 namespace EdcentralizedNet.Models
 {
-    public class EthTransaction
+    public class EtherscanTransaction
     {
         public long maxFeePerGas { get; set; }
         public long maxPriorityFeePerGas { get; set; }

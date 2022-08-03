@@ -21,7 +21,7 @@
         public long cumulativeGasUsed { get; set; }
         public string input { get; set; }
         public long confirmations { get; set; }
-        public EthTransaction transaction { get; set; }
+        public EtherscanTransaction transaction { get; set; }
 
     }
 }

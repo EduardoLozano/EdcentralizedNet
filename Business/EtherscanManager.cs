@@ -7,30 +7,30 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EdcentralizedNet.DataAccess
+namespace EdcentralizedNet.Business
 {
-    public class EtherscanDA : IEtherscanDA
+    public class EtherscanManager : IEtherscanManager
     {
-        private readonly ILogger<EtherscanDA> _logger;
+        private readonly ILogger<EtherscanManager> _logger;
         private readonly EtherscanClient _client;
         private readonly IEtherscanCache _cache;
 
-        public EtherscanDA(ILogger<EtherscanDA> logger, EtherscanClient client, IEtherscanCache cache)
+        public EtherscanManager(ILogger<EtherscanManager> logger, EtherscanClient client, IEtherscanCache cache)
         {
             _logger = logger;
             _client = client;
             _cache = cache;
         }
 
-        public async Task<EthTransaction> GetEthTransaction(string transactionHash)
+        public async Task<EtherscanTransaction> GetEthTransaction(string transactionHash)
         {
             //Try and find transaction in cache first
-            EthTransaction trx = await _cache.GetEthTransaction(transactionHash);
+            EtherscanTransaction trx = await _cache.GetEthTransaction(transactionHash);
 
             if (trx == null)
             {
                 //If we did not find the transaction in cache, lets hit the API
-                ParityResponse<EthTransaction>  trxResponse = await _client.GetEthTransaction(transactionHash);
+                ParityResponse<EtherscanTransaction> trxResponse = await _client.GetEthTransaction(transactionHash);
 
                 if (trxResponse != null)
                 {
@@ -49,13 +49,13 @@ namespace EdcentralizedNet.DataAccess
             IEnumerable<ERC721Transfer> transfers = new List<ERC721Transfer>();
             EtherscanResponse<ERC721Transfer> response = await _client.GetERC721TransfersForAccount(accountAddress);
 
-            if(response.status.Equals("1"))
+            if (response.status.Equals("1"))
             {
                 transfers = FilterTransfers(response.result, accountAddress);
 
-                foreach(ERC721Transfer t in transfers)
+                foreach (ERC721Transfer t in transfers)
                 {
-                    ParityResponse<EthTransaction> trxResponse = await _client.GetEthTransaction(t.hash);
+                    ParityResponse<EtherscanTransaction> trxResponse = await _client.GetEthTransaction(t.hash);
 
                     if (trxResponse != null)
                     {
@@ -75,9 +75,9 @@ namespace EdcentralizedNet.DataAccess
             List<ERC721Transfer> finalList = new List<ERC721Transfer>();
 
             //Need to handle this way more efficiently
-            foreach(ERC721Transfer t in transfers)
+            foreach (ERC721Transfer t in transfers)
             {
-                if(t.to.Equals(accountAddress, StringComparison.InvariantCultureIgnoreCase))
+                if (t.to.Equals(accountAddress, StringComparison.InvariantCultureIgnoreCase))
                 {
                     finalList.Add(t);
                 }
