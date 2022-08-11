@@ -13,6 +13,7 @@ namespace EdcentralizedNet.Repositories
 {
     public class UserAccountRepository : IUserAccountRepository
     {
+        private const string _tableName = "UserAccounts";
         private readonly ILogger<UserAccountRepository> _logger;
         private readonly MySqlConnection _connection;
 
@@ -31,11 +32,11 @@ namespace EdcentralizedNet.Repositories
 
             if (!exists)
             {
-
+                entity.WalletAddress = entity.WalletAddress.ToLower();
                 entity.DateCreated = DateTime.Now;
 
-                string sql = @"INSERT INTO UserAccounts(WalletAddress,DateCreated)
-                           VALUES(@WalletAddress,@DateCreated)";
+                string sql = $@"INSERT INTO {_tableName}(WalletAddress,DateCreated,IsLoaded)
+                                VALUES(@WalletAddress,@DateCreated,@IsLoaded)";
 
                 try
                 {
@@ -63,8 +64,8 @@ namespace EdcentralizedNet.Repositories
 
         public async Task<bool> DeleteAsync(object id)
         {
-            string sql = @"DELETE FROM UserAccounts
-                           WHERE WalletAddress = @id";
+            string sql = $@"DELETE FROM {_tableName}
+                            WHERE WalletAddress = @id";
 
             try
             {
@@ -87,8 +88,8 @@ namespace EdcentralizedNet.Repositories
 
         public async Task<bool> Exists(object id)
         {
-            string sql = @"SELECT EXISTS(SELECT 1 FROM UserAccounts
-                           WHERE WalletAddress = @id)";
+            string sql = $@"SELECT EXISTS(SELECT 1 FROM {_tableName}
+                            WHERE WalletAddress = @id)";
 
             try
             {
@@ -111,7 +112,7 @@ namespace EdcentralizedNet.Repositories
 
         public async Task<IEnumerable<UserAccount>> GetAllAsync()
         {
-            string sql = @"SELECT * FROM UserAccounts";
+            string sql = $@"SELECT * FROM {_tableName}";
 
             try
             {
@@ -134,7 +135,7 @@ namespace EdcentralizedNet.Repositories
 
         public async Task<UserAccount> GetByIdAsync(object id)
         {
-            string sql = @"SELECT * FROM UserAccounts WHERE WalletAddress = @id ";
+            string sql = $@"SELECT * FROM {_tableName} WHERE WalletAddress = @id ";
 
             try
             {
@@ -157,9 +158,29 @@ namespace EdcentralizedNet.Repositories
 
         public async Task<bool> UpdateAsync(UserAccount entity)
         {
-            //We currently should not be updating User Accounts
-            //Wallet Address and Date created should only be set on Add
-            return true;
+            bool isUpdated = false;
+
+            string sql = $@"UPDATE {_tableName}
+                            SET IsLoaded = @IsLoaded
+                            WHERE WalletAddress = @WalletAddress";
+
+            try
+            {
+                using (_connection)
+                {
+                    _connection.Open();
+
+                    var result = await _connection.ExecuteAsync(sql, entity);
+
+                    isUpdated = result > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, null, null);
+            }
+
+            return isUpdated;
         }
     }
 }

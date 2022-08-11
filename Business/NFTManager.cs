@@ -1,6 +1,7 @@
 ﻿using EdcentralizedNet.Cache;
 using EdcentralizedNet.Models;
 using EdcentralizedNet.Repositories;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,18 +11,56 @@ namespace EdcentralizedNet.Business
 {
     public class NFTManager : INFTManager
     {
+        private readonly ILogger<NFTManager> _logger;
         private readonly IEtherscanManager _etherscanManager;
         private readonly IOpenseaManager _openseaManager;
         private readonly IUserAccountRepository _userAccountRepository;
+        private readonly IAccountTokenRepository _accountTokenRepository;
         private readonly INFTCache _nftCache;
 
-        public NFTManager(IEtherscanManager etherscanManager, IOpenseaManager openseaManager,
-                          IUserAccountRepository userAccountRepository, INFTCache nftCache)
+        public NFTManager(ILogger<NFTManager> logger, IEtherscanManager etherscanManager, IOpenseaManager openseaManager,
+                          IUserAccountRepository userAccountRepository, IAccountTokenRepository accountTokenRepository,
+                          INFTCache nftCache)
         {
+            _logger = logger;
             _etherscanManager = etherscanManager;
             _openseaManager = openseaManager;
-            _nftCache = nftCache;
             _userAccountRepository = userAccountRepository;
+            _accountTokenRepository = accountTokenRepository;
+            _nftCache = nftCache;
+        }
+
+        public async Task<AccountStatusResponse> GetAccountStatus(string accountAddress)
+        {
+            AccountStatusResponse response = new AccountStatusResponse(accountAddress);
+            UserAccount account = await _userAccountRepository.GetByIdAsync(accountAddress);
+
+            if (account == null)
+            {
+                //If account does not exist yet then lets assume this is a new user
+                //Lets create the account and fire off their initial load
+                account = new UserAccount() { WalletAddress = accountAddress };
+                await _userAccountRepository.AddAsync(account);
+
+                //Let this keep running in the background
+                InitialAccountLoad(accountAddress);
+
+                response.IsLoaded = false;
+                response.Message = "Welcome! It seems you are new here. Please be patient with us while we do an initial load for your account.";
+            }
+            else if (account.IsLoaded == false)
+            {
+                //If we did find an account but it still is not fully loaded
+                //Lets let our user know we are still loading all of their data
+                response.IsLoaded = false;
+                response.Message = "Still loading and calculating your portfolio! Please be patient with us while we do an initial load for your account.";
+            }
+            else
+            {
+                response.IsLoaded = true;
+            }
+
+            return response;
         }
 
         public async Task<CursorPagedList<NFTAsset>> GetNFTAssetPage(string accountAddress, int pageNumber, string pageCursor = null)
@@ -37,7 +76,7 @@ namespace EdcentralizedNet.Business
                 assetList = new CursorPagedList<NFTAsset>();
 
                 //Get all assets from OpenSea
-                OSAssetList assets = await _openseaManager.GetAssetsForAccount(accountAddress, pageCursor);
+                OSAssetList assets = await _openseaManager.GetAssetPageForAccount(accountAddress, pageCursor);
 
                 if (assets != null)
                 {
@@ -63,7 +102,6 @@ namespace EdcentralizedNet.Business
                     assetList.PrevPageCursor = assets.previous;
 
                     //Store this page in cache for future use
-                    //TODO: Currently storing first page with null cursor on initial load and another cursor on going previous
                     await _nftCache.SetNFTAssetPage(accountAddress, pageNumber, assetList);
                 }
             }
@@ -73,9 +111,6 @@ namespace EdcentralizedNet.Business
 
         public async Task<PortfolioInformation> GetPortfolioInformation(string accountAddress)
         {
-            //Make user account address is saved in our records
-            await _userAccountRepository.AddAsync(new UserAccount() { WalletAddress = accountAddress });
-
             //Try and retrieve from cache first as this a very time consuming function
             PortfolioInformation portfolio = await _nftCache.GetPortfolioInformation(accountAddress);
 
@@ -91,6 +126,44 @@ namespace EdcentralizedNet.Business
             }
 
             return portfolio;
+        }
+
+        private async Task InitialAccountLoad(string accountAddress)
+        {
+            //Load all assets for account from Opensea
+            List<OSAsset> assets = await _openseaManager.GetAllAssetsForAccount(accountAddress);
+
+            if (assets != null)
+            {
+                foreach (OSAsset asset in assets)
+                {
+                    //If the last sale does not have a total price, then we assume it is a mint event
+                    //Attempt to get the transaction from etherscan for the mint price
+                    if (asset.last_sale != null && asset.last_sale.transaction != null && asset.last_sale.total_price == null)
+                    {
+                        EtherscanTransaction trx = await _etherscanManager.GetEthTransaction(asset.last_sale.transaction.transaction_hash);
+
+                        if (trx != null)
+                        {
+                            asset.last_sale.total_price = trx.value.ToString();
+                        }
+                    }
+
+                    //Map into DB model
+                    AccountToken entity = new AccountToken(accountAddress, asset);
+
+                    bool wasAdded = await _accountTokenRepository.AddAsync(entity);
+
+                    if (!wasAdded)
+                    {
+                        _logger.LogError("Unable to save token. Wallet: {0}, Contract: {1}, TokenId: {2}", accountAddress, entity.ContractAddress, entity.TokenId);
+                    }
+                }
+
+                //Update account as loaded
+                UserAccount account = new UserAccount() { WalletAddress = accountAddress, IsLoaded = true };
+                await _userAccountRepository.UpdateAsync(account);
+            }
         }
 
         private async Task<List<NFTAsset>> GetAllNFTAssets(string accountAddress)

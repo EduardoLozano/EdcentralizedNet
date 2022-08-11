@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 
 namespace EdcentralizedNet.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class NFTAssetController : ControllerBase
     {
         private readonly ILogger<NFTAssetController> _logger;

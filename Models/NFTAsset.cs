@@ -45,7 +45,14 @@ namespace EdcentralizedNet.Models
                 }
             }
 
-            FloorPrice = asset.collection.stats != null && asset.collection.stats.floor_price.HasValue ? asset.collection.stats.floor_price.Value : 0;
+            if(asset.collection.stats != null)
+            {
+                if (asset.collection.stats.floor_price.HasValue)
+                {
+                    FloorPrice = asset.collection.stats.floor_price.Value;
+                }
+            }
+
             ProfitLossAmount = FloorPrice - PurchasePrice;
             ProfitLossPercent = Math.Round((ProfitLossAmount / (PurchasePrice.Equals(0) ? 1 : PurchasePrice)) * 100, 2);
         }

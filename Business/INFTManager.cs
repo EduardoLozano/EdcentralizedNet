@@ -7,5 +7,6 @@ namespace EdcentralizedNet.Business
     {
         Task<CursorPagedList<NFTAsset>> GetNFTAssetPage(string accountAddress, int pageNumber, string pageCursor);
         Task<PortfolioInformation> GetPortfolioInformation(string accountAddress);
+        Task<AccountStatusResponse> GetAccountStatus(string accountAddress);
     }
 }

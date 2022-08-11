@@ -136,7 +136,7 @@ export default class AccountSummary extends Component {
             var params = new URLSearchParams({ accountAddress: Wallet.address });
             const response = await fetch('api/portfolio?' + params);
             const data = await response.json();
-            console.log(data);
+            //console.log(data);
             this.setState({ portfolio: data, loading: false });
         } else {
             this.setState({ portfolio: {}, loading: false });

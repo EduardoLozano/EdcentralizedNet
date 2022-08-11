@@ -22,7 +22,7 @@ ReactDOM.render(<Provider store={store}>
                 </Provider>
 , rootElement);
 
-registerServiceWorker();
+//registerServiceWorker();
 
 //$(document).ready(async function () {
 //    await Wallet.connect();

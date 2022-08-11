@@ -30,7 +30,7 @@ const NFTAssetCard = props => (
         <CardBody>
             <Row>
                 <Col col="3">
-                    <a href={props.openseaUrl} target="_blank" rel="noopener noreferrer"><img src="OpenSea-Full-Logo-Dark.png" style={{ width: "30%" }} alt="OpenSea Link"></img></a>
+                    <button className="btn btn-secondary"><a href={props.openseaUrl} target="_blank" rel="noopener noreferrer"><img src="OpenSea-Full-Logo-Dark.png" style={{ width: "30%" }} alt="OpenSea Link"></img></a></button>
                 </Col>
             </Row>
         </CardBody>
@@ -135,7 +135,7 @@ export default class NFTAssetList extends Component {
             var params = new URLSearchParams({ accountAddress: Wallet.address, pageNumber: pageNumber, pageCursor: pageCursor == null ? '' : pageCursor });
             const response = await fetch('api/nftasset?' + params);
             const data = await response.json();
-            console.log(data);
+            //console.log(data);
             this.setState({ assets: data, pageNumber: pageNumber });
         }
 

@@ -6,5 +6,6 @@ namespace EdcentralizedNet.Models
     {
         public string WalletAddress { get; set; }
         public DateTime DateCreated { get; set; }
+        public bool IsLoaded { get; set; }
     }
 }

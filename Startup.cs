@@ -43,6 +43,7 @@ namespace EdcentralizedNet
 
             //Add Repository Layer
             services.AddScoped<IUserAccountRepository, UserAccountRepository>();
+            services.AddScoped<IAccountTokenRepository, AccountTokenRepository>();
 
             //Add Business Layer
             services.AddScoped<IEtherscanManager, EtherscanManager>();
