@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace EdcentralizedNet.Models
+namespace EdcentralizedNet.EtherscanModels
 {
     public class EtherscanResponse<T>
     {

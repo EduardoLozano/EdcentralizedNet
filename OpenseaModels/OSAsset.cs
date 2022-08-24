@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace EdcentralizedNet.Models
+namespace EdcentralizedNet.OpenseaModels
 {
     public class OSAsset
     {

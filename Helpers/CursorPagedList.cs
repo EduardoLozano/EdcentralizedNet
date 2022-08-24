@@ -1,16 +1,16 @@
 ﻿using System.Collections.Generic;
 
-namespace EdcentralizedNet.Models
+namespace EdcentralizedNet.Helpers
 {
     public class CursorPagedList<T>
     {
         public string NextPageCursor { get; set; }
         public string PrevPageCursor { get; set; }
-        public List<T> DataList { get; set; }
+        public System.Collections.Generic.List<T> DataList { get; set; }
 
         public CursorPagedList()
         {
-            DataList = new List<T>();
+            DataList = new System.Collections.Generic.List<T>();
         }
     }
 }

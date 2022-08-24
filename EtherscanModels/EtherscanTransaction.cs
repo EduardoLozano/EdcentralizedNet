@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace EdcentralizedNet.Models
+namespace EdcentralizedNet.EtherscanModels
 {
     public class EtherscanTransaction
     {

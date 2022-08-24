@@ -1,6 +1,6 @@
 ﻿using EdcentralizedNet.Cache;
 using EdcentralizedNet.HttpClients;
-using EdcentralizedNet.Models;
+using EdcentralizedNet.OpenseaModels;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +20,25 @@ namespace EdcentralizedNet.Business
             _logger = logger;
             _client = client;
             _cache = cache;
+        }
+
+        public async Task<List<OSAsset>> GetAllAssetsForAccount(string accountAddress)
+        {
+            List<OSAsset> assets = new List<OSAsset>();
+            OSAssetList assetPage = new OSAssetList();
+
+            do
+            {
+                assetPage = await GetAssetPageForAccount(accountAddress, assetPage.next);
+
+                if (assetPage != null && assetPage.assets.Any())
+                {
+                    assets.AddRange(assetPage.assets);
+                }
+            }
+            while (assetPage != null && !string.IsNullOrWhiteSpace(assetPage.next));
+
+            return assets;
         }
 
         public async Task<OSAssetList> GetAssetPageForAccount(string accountAddress, string cursor = null)
@@ -44,25 +63,6 @@ namespace EdcentralizedNet.Business
                     }
                 }
             }
-
-            return assets;
-        }
-
-        public async Task<List<OSAsset>> GetAllAssetsForAccount(string accountAddress)
-        {
-            List<OSAsset> assets = new List<OSAsset>();
-            OSAssetList assetPage = new OSAssetList();
-
-            do
-            {
-                assetPage = await GetAssetPageForAccount(accountAddress, assetPage.next);
-
-                if(assetPage != null && assetPage.assets.Any())
-                {
-                    assets.AddRange(assetPage.assets);
-                }
-            }
-            while (assetPage != null && !string.IsNullOrWhiteSpace(assetPage.next));
 
             return assets;
         }

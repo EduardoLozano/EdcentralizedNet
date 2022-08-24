@@ -44,11 +44,15 @@ namespace EdcentralizedNet
             //Add Repository Layer
             services.AddScoped<IUserAccountRepository, UserAccountRepository>();
             services.AddScoped<IAccountTokenRepository, AccountTokenRepository>();
+            services.AddScoped<ICollectionStatsRepository, CollectionStatsRepository>();
+            services.AddScoped<IAccountSummaryRepository, AccountSummaryRepository>();
 
             //Add Business Layer
             services.AddScoped<IEtherscanManager, EtherscanManager>();
             services.AddScoped<IOpenseaManager, OpenseaManager>();
             services.AddScoped<INFTManager, NFTManager>();
+            services.AddScoped<IAccountTokenManager, AccountTokenManager>();
+            services.AddScoped<IAccountSummaryManager, AccountSummaryManager>();
 
             //Add Caching Layer
             services.AddScoped<IApplicationCache, ApplicationCache>();

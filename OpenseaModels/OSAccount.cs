@@ -1,4 +1,4 @@
-﻿namespace EdcentralizedNet.Models
+﻿namespace EdcentralizedNet.OpenseaModels
 {
     public class OSAccount
     {

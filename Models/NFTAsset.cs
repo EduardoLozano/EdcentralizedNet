@@ -1,4 +1,5 @@
 ﻿using System;
+using EdcentralizedNet.OpenseaModels;
 
 namespace EdcentralizedNet.Models
 {

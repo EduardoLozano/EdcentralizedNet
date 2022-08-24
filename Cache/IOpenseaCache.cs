@@ -1,4 +1,4 @@
-﻿using EdcentralizedNet.Models;
+﻿using EdcentralizedNet.OpenseaModels;
 using System.Threading.Tasks;
 
 namespace EdcentralizedNet.Cache

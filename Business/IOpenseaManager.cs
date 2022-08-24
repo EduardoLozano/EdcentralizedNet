@@ -1,4 +1,4 @@
-﻿using EdcentralizedNet.Models;
+﻿using EdcentralizedNet.OpenseaModels;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

@@ -1,5 +1,5 @@
 ﻿using EdcentralizedNet.Cache;
-using EdcentralizedNet.Models;
+using EdcentralizedNet.OpenseaModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;

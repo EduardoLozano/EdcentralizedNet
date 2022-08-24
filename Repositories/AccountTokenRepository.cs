@@ -146,6 +146,40 @@ namespace EdcentralizedNet.Repositories
             return null;
         }
 
+        public async Task<IEnumerable<AccountToken>> GetPageAsync(string walletAddress, int pageNumber, int pageSize = 20)
+        {
+            string sql = $@"SELECT a.*, c.FloorPrice 
+                            FROM {_tableName} a
+                            LEFT JOIN CollectionStats c ON a.collectionSlug = c.collectionSlug 
+                            WHERE WalletAddress = @WalletAddress
+                            ORDER BY PurchaseDate DESC
+                            LIMIT @PageSize OFFSET @Offset";
+
+            try
+            {
+                using (_connection)
+                {
+                    _connection.Open();
+
+                    int offset = (pageNumber - 1) * pageSize;
+                    var result = await _connection.QueryAsync<AccountToken>(sql, new
+                    {
+                        WalletAddress = walletAddress,
+                        PageSize = pageSize,
+                        Offset = offset
+                    });
+
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, null, null);
+            }
+
+            return null;
+        }
+
         public async Task<bool> UpdateAsync(AccountToken entity)
         {
             //Should not be updating the token records for now

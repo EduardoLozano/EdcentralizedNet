@@ -1,10 +1,12 @@
 ﻿using EdcentralizedNet.Cache;
+using EdcentralizedNet.EtherscanModels;
+using EdcentralizedNet.Helpers;
 using EdcentralizedNet.Models;
+using EdcentralizedNet.OpenseaModels;
 using EdcentralizedNet.Repositories;
+using EdcentralizedNet.ViewModels;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace EdcentralizedNet.Business
@@ -16,23 +18,25 @@ namespace EdcentralizedNet.Business
         private readonly IOpenseaManager _openseaManager;
         private readonly IUserAccountRepository _userAccountRepository;
         private readonly IAccountTokenRepository _accountTokenRepository;
+        private readonly ICollectionStatsRepository _collectionStatsRepository;
         private readonly INFTCache _nftCache;
 
         public NFTManager(ILogger<NFTManager> logger, IEtherscanManager etherscanManager, IOpenseaManager openseaManager,
                           IUserAccountRepository userAccountRepository, IAccountTokenRepository accountTokenRepository,
-                          INFTCache nftCache)
+                          ICollectionStatsRepository collectionStatsRepository, INFTCache nftCache)
         {
             _logger = logger;
             _etherscanManager = etherscanManager;
             _openseaManager = openseaManager;
             _userAccountRepository = userAccountRepository;
             _accountTokenRepository = accountTokenRepository;
+            _collectionStatsRepository = collectionStatsRepository;
             _nftCache = nftCache;
         }
 
-        public async Task<AccountStatusResponse> GetAccountStatus(string accountAddress)
+        public async Task<AccountStatusVM> GetAccountStatus(string accountAddress)
         {
-            AccountStatusResponse response = new AccountStatusResponse(accountAddress);
+            AccountStatusVM response = new AccountStatusVM(accountAddress);
             UserAccount account = await _userAccountRepository.GetByIdAsync(accountAddress);
 
             if (account == null)
@@ -109,17 +113,18 @@ namespace EdcentralizedNet.Business
             return assetList;
         }
 
-        public async Task<PortfolioInformation> GetPortfolioInformation(string accountAddress)
+        public async Task<AccountSummary> GetPortfolioInformation(string accountAddress)
         {
             //Try and retrieve from cache first as this a very time consuming function
-            PortfolioInformation portfolio = await _nftCache.GetPortfolioInformation(accountAddress);
+            AccountSummary portfolio = await _nftCache.GetPortfolioInformation(accountAddress);
 
             if (portfolio == null)
             {
                 //If we did not find information in cache, retrieve all assets so that we can calculate values
-                List<NFTAsset> assets = await GetAllNFTAssets(accountAddress);
+                System.Collections.Generic.List<NFTAsset> assets = await GetAllNFTAssets(accountAddress);
 
-                portfolio = new PortfolioInformation(assets);
+                //Temporary
+                portfolio = new AccountSummary();
 
                 //Store in cache so we dont have to keep making this expensive calculation
                 await _nftCache.SetPortfolioInformation(accountAddress, portfolio);
@@ -131,10 +136,14 @@ namespace EdcentralizedNet.Business
         private async Task InitialAccountLoad(string accountAddress)
         {
             //Load all assets for account from Opensea
-            List<OSAsset> assets = await _openseaManager.GetAllAssetsForAccount(accountAddress);
+            System.Collections.Generic.List<OSAsset> assets = await _openseaManager.GetAllAssetsForAccount(accountAddress);
 
             if (assets != null)
             {
+                //Maintain a list of all collection stats that need saving
+                //Doing this so that we do not update the same collection over and over again
+                Dictionary<string, OSStats> collectionStats = new Dictionary<string, OSStats>();
+
                 foreach (OSAsset asset in assets)
                 {
                     //If the last sale does not have a total price, then we assume it is a mint event
@@ -149,14 +158,32 @@ namespace EdcentralizedNet.Business
                         }
                     }
 
-                    //Map into DB model
+                    //Map into DB model and save
                     AccountToken entity = new AccountToken(accountAddress, asset);
-
                     bool wasAdded = await _accountTokenRepository.AddAsync(entity);
+
+                    //Include token's collection for saving if we haven't already
+                    if(asset.collection != null && asset.collection.stats != null && !collectionStats.ContainsKey(asset.collection.slug))
+                    {
+                        collectionStats.Add(asset.collection.slug, asset.collection.stats);
+                    }
 
                     if (!wasAdded)
                     {
                         _logger.LogError("Unable to save token. Wallet: {0}, Contract: {1}, TokenId: {2}", accountAddress, entity.ContractAddress, entity.TokenId);
+                    }
+                }
+
+                //Save any collection stats that we found
+                foreach(var stat in collectionStats)
+                {
+                    //Save collection stats to DB
+                    CollectionStats stats = new CollectionStats(stat.Key, stat.Value);
+                    bool statsAdded = await _collectionStatsRepository.AddAsync(stats);
+
+                    if (!statsAdded)
+                    {
+                        _logger.LogError("Unable to save collection stats. Slug: {0}", stat.Key);
                     }
                 }
 
@@ -166,10 +193,10 @@ namespace EdcentralizedNet.Business
             }
         }
 
-        private async Task<List<NFTAsset>> GetAllNFTAssets(string accountAddress)
+        private async Task<System.Collections.Generic.List<NFTAsset>> GetAllNFTAssets(string accountAddress)
         {
             int pageNumber = 1;
-            List<NFTAsset> allAssets = new List<NFTAsset>();
+            System.Collections.Generic.List<NFTAsset> allAssets = new System.Collections.Generic.List<NFTAsset>();
             CursorPagedList<NFTAsset> assetPage = new CursorPagedList<NFTAsset>();
 
             do

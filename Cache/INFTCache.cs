@@ -1,4 +1,5 @@
-﻿using EdcentralizedNet.Models;
+﻿using EdcentralizedNet.Helpers;
+using EdcentralizedNet.Models;
 using System.Threading.Tasks;
 
 namespace EdcentralizedNet.Cache
@@ -9,8 +10,8 @@ namespace EdcentralizedNet.Cache
         Task SetNFTAssetPage(string accountAddress, int pageNumber, CursorPagedList<NFTAsset> assetList);
         Task RemoveNFTAssetPage(string accountAddress, int pageNumber);
 
-        Task<PortfolioInformation> GetPortfolioInformation(string accountAddress);
-        Task SetPortfolioInformation(string accountAddress, PortfolioInformation portfolioInformation);
+        Task<AccountSummary> GetPortfolioInformation(string accountAddress);
+        Task SetPortfolioInformation(string accountAddress, AccountSummary portfolioInformation);
         Task RemovePortfolioInformation(string accountAddress);
     }
 }

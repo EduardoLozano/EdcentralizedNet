@@ -1,4 +1,4 @@
-﻿using EdcentralizedNet.Models;
+﻿using EdcentralizedNet.EtherscanModels;
 using System.Threading.Tasks;
 
 namespace EdcentralizedNet.Business

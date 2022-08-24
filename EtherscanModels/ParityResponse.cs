@@ -1,4 +1,4 @@
-﻿namespace EdcentralizedNet.Models
+﻿namespace EdcentralizedNet.EtherscanModels
 {
     public class ParityResponse<T>
     {

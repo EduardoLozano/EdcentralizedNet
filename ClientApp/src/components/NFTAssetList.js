@@ -42,7 +42,7 @@ export default class NFTAssetList extends Component {
 
     constructor(props) {
         super(props);
-        this.state = { assets: { dataList: [] }, loading: true };
+        this.state = { assets: [], loading: true, hasNext: true, hasPrev: false };
 
         //Function bindings to this
         this.prevPage = this.prevPage.bind(this);
@@ -84,12 +84,12 @@ export default class NFTAssetList extends Component {
         );
     }
 
-    renderTransactionsTable(assets) {
+    renderAccountTokens(assets, hasNext, hasPrev) {
         return (
             <Row className="justify-content-md-center">
                 <Col xl="9" lg="8">
                     <Row>
-                        {assets.dataList.map(t =>
+                        {assets.map(t =>
                             <Col key={t.transactionHash + t.tokenID} xl="3" lg="6">
                                 <NFTAssetCard collectionName={t.collectionName}
                                     tokenID={t.tokenID}
@@ -103,10 +103,10 @@ export default class NFTAssetList extends Component {
                         )}
                     </Row>
                     <Row className="justify-content-md-center">
-                        <Button color="secondary" className="btn-labeled" disabled={assets.prevPageCursor == null} onClick={this.prevPage}>
+                        <Button color="secondary" className="btn-labeled" disabled={!hasPrev} onClick={this.prevPage}>
                             <span className="btn-label"><i className="fa fa-arrow-left"></i></span> Previous
                         </Button>
-                        <Button color="secondary" className="btn-labeled" disabled={assets.nextPageCursor == null} onClick={this.nextPage}>
+                        <Button color="secondary" className="btn-labeled" disabled={!hasNext} onClick={this.nextPage}>
                             Next
                             <span className="btn-label btn-label-right"><i className="fa fa-arrow-right"></i></span>
                         </Button>
@@ -119,7 +119,7 @@ export default class NFTAssetList extends Component {
     render() {
         var contents = this.state.loading
             ? NFTAssetList.renderLoading()
-            : this.renderTransactionsTable(this.state.assets);
+            : this.renderAccountTokens(this.state.assets, this.state.hasNext, this.state.hasPrev);
 
         return (
             <div>
@@ -128,15 +128,20 @@ export default class NFTAssetList extends Component {
         );
     }
 
-    async loadNFTAssetPage(pageNumber, pageCursor) {
-        this.setState({ assets: { dataList: [] } });
-
+    async loadNFTAssetPage(pageNumber) {
         if (Wallet.isConnected) {
-            var params = new URLSearchParams({ accountAddress: Wallet.address, pageNumber: pageNumber, pageCursor: pageCursor == null ? '' : pageCursor });
-            const response = await fetch('api/nftasset?' + params);
+            var params = new URLSearchParams({ walletAddress: Wallet.address, pageNumber: pageNumber, pageSize: 20 });
+            const response = await fetch('api/accounttoken?' + params);
             const data = await response.json();
             //console.log(data);
-            this.setState({ assets: data, pageNumber: pageNumber });
+
+            if (data.length == 0) {
+                this.setState({ hasNext: false });
+            } else {
+                this.setState({ assets: data, pageNumber: pageNumber, hasNext: true });
+            }
+
+            this.setState({ hasPrev: pageNumber > 1 });
         }
 
 

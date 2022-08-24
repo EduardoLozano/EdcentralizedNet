@@ -1,4 +1,5 @@
 ﻿using System;
+using EdcentralizedNet.OpenseaModels;
 
 namespace EdcentralizedNet.Models
 {
@@ -19,6 +20,10 @@ namespace EdcentralizedNet.Models
         public int PurchasePriceDecimals { get; set; }
         public decimal PurchaseUsdPrice { get; set; }
         public string ImageUrl { get; set; }
+
+        //This property will not be saved as part of this enitity
+        //Using this property to select data joining into the stats table
+        public decimal FloorPrice { get; set; }
 
         public AccountToken() { }
 

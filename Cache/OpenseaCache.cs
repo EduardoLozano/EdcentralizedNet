@@ -1,4 +1,4 @@
-﻿using EdcentralizedNet.Models;
+﻿using EdcentralizedNet.OpenseaModels;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
@@ -28,8 +28,8 @@ namespace EdcentralizedNet.Cache
 
         public Task SetStatsForCollection(string collectionSlug, OSStats stats)
         {
-            //Default expiration to 15 minutes
-            TimeSpan expiration = new TimeSpan(0, 15, 0);
+            //Default expiration to 30 minutes
+            TimeSpan expiration = new TimeSpan(0, 30, 0);
             string key = string.Format(collectionStatsKey, collectionSlug);
             
             //For opensea stats, if we dont receive any back, lets store an empty object

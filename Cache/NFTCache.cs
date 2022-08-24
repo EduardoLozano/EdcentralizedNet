@@ -1,4 +1,5 @@
-﻿using EdcentralizedNet.Models;
+﻿using EdcentralizedNet.Helpers;
+using EdcentralizedNet.Models;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
@@ -42,13 +43,13 @@ namespace EdcentralizedNet.Cache
         #endregion
 
         #region Portfolio Information
-        public Task<PortfolioInformation> GetPortfolioInformation(string accountAddress)
+        public Task<AccountSummary> GetPortfolioInformation(string accountAddress)
         {
             string key = string.Format(portfolioInformationKey, accountAddress);
-            return _cache.Get<PortfolioInformation>(key);
+            return _cache.Get<AccountSummary>(key);
         }
 
-        public Task SetPortfolioInformation(string accountAddress, PortfolioInformation portfolioInformation)
+        public Task SetPortfolioInformation(string accountAddress, AccountSummary portfolioInformation)
         {
             string key = string.Format(portfolioInformationKey, accountAddress);
 

@@ -1,6 +1,6 @@
 ﻿using EdcentralizedNet.Cache;
+using EdcentralizedNet.EtherscanModels;
 using EdcentralizedNet.Helpers;
-using EdcentralizedNet.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;

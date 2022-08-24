@@ -11,7 +11,7 @@ export default class Portfolio extends Component {
 
     constructor(props) {
         super(props);
-        this.state = { status: {}, loading: true };
+        this.state = { status: {} };
     }
 
     componentDidMount() {
@@ -53,7 +53,7 @@ export default class Portfolio extends Component {
     }
 
     render() {
-        var contents = this.state.isLoaded
+        var contents = this.state.status.isLoaded
             ? Portfolio.renderPortfolio()
             : Portfolio.renderStatus(this.state.status);
 
@@ -62,24 +62,17 @@ export default class Portfolio extends Component {
                 {contents}
             </div>
         );
-
-        return (
-            <div>
-                <AccountSummary/>
-                <NFTAssetList/>
-            </div>
-        );
     }
 
     async loadAccountStatus(pageCursor) {
         if (Wallet.isConnected) {
             var params = new URLSearchParams({ accountAddress: Wallet.address });
-            const response = await fetch('api/useraccount/status?' + params);
+            const response = await fetch('api/accountstatus?' + params);
             const data = await response.json();
             console.log(data);
-            this.setState({ status: data, loading: false });
+            this.setState({ status: data });
         } else {
-            this.setState({ status: {}, loading: false });
+            this.setState({ status: {} });
         }
     }
 }
